@@ -74,7 +74,7 @@ class Orchestrator:
         tool_text = ""
         if chosen.tool:
             t = time.perf_counter()
-            tool_text = await self._call_tool(chosen.tool, chosen.arguments, trace)
+            tool_text = await self._call_tool(chosen.tool, chosen.arguments, trace, question)
             trace.latency_s["tool"] = round(time.perf_counter() - t, 2)
 
         t = time.perf_counter()
@@ -86,8 +86,8 @@ class Orchestrator:
         trace.latency_s["total"] = round(time.perf_counter() - started, 2)
         return Turn(answer=text, trace=trace)
 
-    async def _call_tool(self, name: str, arguments: dict[str, Any], trace: Trace) -> str:
-        resolution = await resolve(name, arguments, self.mcp.tools, self.mcp, self.mcp_dir)
+    async def _call_tool(self, name: str, arguments: dict[str, Any], trace: Trace, question: str) -> str:
+        resolution = await resolve(name, arguments, self.mcp.tools, self.mcp, self.mcp_dir, question)
         trace.arguments = resolution.arguments
         trace.notes.extend(resolution.notes)
         trace.extra_calls.extend(resolution.extra_calls)

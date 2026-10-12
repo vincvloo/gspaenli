@@ -1,4 +1,4 @@
-"""Persona loading. One YAML file per persona in personas/; adding a file adds a persona."""
+"""Persona loading. One YAML file per persona in personas/; adding a file adds a persona. File names set the order."""
 
 from __future__ import annotations
 
