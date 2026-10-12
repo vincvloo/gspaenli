@@ -160,11 +160,21 @@ def coerce_arguments(arguments: dict[str, Any], tool: ToolInfo) -> dict[str, Any
     return out
 
 
+def numbers_in(text: str) -> set[int]:
+    # Swiss thousands separators: 2'500 or 2’500
+    return {int(n) for n in re.findall(r"\d+", re.sub(r"(?<=\d)['’](?=\d)", "", text))}
+
+
 async def resolve(
-    tool_name: str, arguments: dict[str, Any], tools: dict[str, ToolInfo], mcp: ToolCaller, mcp_dir: Path
+    tool_name: str,
+    arguments: dict[str, Any],
+    tools: dict[str, ToolInfo],
+    mcp: ToolCaller,
+    mcp_dir: Path,
+    question: str = "",
 ) -> Resolution:
     if tool_name == PREMIUM_TOOL:
-        return await _resolve_premium(arguments, mcp, mcp_dir)
+        return await _resolve_premium(arguments, mcp, mcp_dir, numbers_in(question))
     args = {k: v for k, v in arguments.items() if k not in DROP_ARGUMENTS.get(tool_name, set())}
     if isinstance(args.get("canton"), str) and (code := canton_code(args["canton"])):
         args["canton"] = code
@@ -172,7 +182,19 @@ async def resolve(
     return Resolution(arguments=coerce_arguments(args, tool) if tool else args)
 
 
-async def _resolve_premium(arguments: dict[str, Any], mcp: ToolCaller, mcp_dir: Path) -> Resolution:
+def _user_number(arguments: dict[str, Any], key: str, user_numbers: set[int]) -> int | None:
+    """A number the model passed, only if the user actually wrote it. Apertus turned
+    "un adulte" into age 18, which has no adult premium."""
+    try:
+        value = int(arguments[key])
+    except (KeyError, TypeError, ValueError):
+        return None
+    return value if value in user_numbers else None
+
+
+async def _resolve_premium(
+    arguments: dict[str, Any], mcp: ToolCaller, mcp_dir: Path, user_numbers: set[int]
+) -> Resolution:
     notes: list[str] = []
     calls: list[str] = []
     name = arguments.get("municipality") or arguments.get("municipality_name")
@@ -191,16 +213,12 @@ async def _resolve_premium(arguments: dict[str, Any], mcp: ToolCaller, mcp_dir: 
     else:
         return Resolution(arguments, error="No municipality given")
 
-    try:
-        age = int(arguments["age"])
-    except (KeyError, TypeError, ValueError):
+    age = _user_number(arguments, "age", user_numbers)
+    if age is None:
         age = DEFAULT_AGE
         notes.append(f"Assumed an adult aged {DEFAULT_AGE} (adult rate from age 26)")
-    try:
-        franchise = int(arguments["franchise"])
-        if franchise not in FRANCHISES:
-            raise ValueError
-    except (KeyError, TypeError, ValueError):
+    franchise = _user_number(arguments, "franchise", user_numbers)
+    if franchise not in FRANCHISES:
         franchise = DEFAULT_FRANCHISE
         notes.append(
             f"Assumed the {DEFAULT_FRANCHISE} CHF franchise (deductible), the standard one; "

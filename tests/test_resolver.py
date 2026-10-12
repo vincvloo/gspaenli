@@ -52,10 +52,23 @@ async def test_premium_with_defaults_states_assumptions(places_db):
 
 async def test_premium_keeps_user_values_and_fixes_bad_franchise(places_db):
     mcp = FakeMCP()
-    res = await resolve(PREMIUM_TOOL, {"municipality": "Genf", "age": "22", "franchise": 2500}, mcp.tools, mcp, places_db)
+    question = "Prämie in Genf für eine 22-jährige Person mit Franchise 2'500?"
+    args = {"municipality": "Genf", "age": "22", "franchise": 2500}
+    res = await resolve(PREMIUM_TOOL, args, mcp.tools, mcp, places_db, question)
     assert res.arguments == {"age": 22, "municipality_code": 6621, "franchise": 2500}
-    res = await resolve(PREMIUM_TOOL, {"municipality": "Genf", "age": 40, "franchise": 750}, mcp.tools, mcp, places_db)
+    args = {"municipality": "Genf", "age": 40, "franchise": 750}
+    res = await resolve(PREMIUM_TOOL, args, mcp.tools, mcp, places_db, "Genf, 40 ans, franchise 750")
     assert res.arguments["franchise"] == 300
+
+
+async def test_premium_ignores_numbers_the_user_did_not_write(places_db):
+    # Regression: Apertus routed "pour un adulte" with age 18, which has no adult premium.
+    mcp = FakeMCP()
+    question = "Quelle est la prime minimale d'assurance maladie à Lausanne pour un adulte ?"
+    args = {"municipality": "Lausanne", "age": 18, "franchise": 2500}
+    res = await resolve(PREMIUM_TOOL, args, mcp.tools, mcp, places_db, question)
+    assert res.arguments == {"age": 30, "municipality_code": 5586, "franchise": 300}
+    assert any("aged 30" in n for n in res.notes)
 
 
 async def test_premium_accepts_name_in_code_field(places_db):

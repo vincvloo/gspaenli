@@ -148,6 +148,29 @@ class SwissMCP:
         self.tools = {t.name: t for t in filter_allowed(all_tools)}
         log.info("Swiss MCP ready: %d of %d tools allowed", len(self.tools), len(all_tools))
 
+    async def start_in_background(self) -> None:
+        """Start inside a dedicated task that owns the stdio session for the server's lifetime.
+
+        Web handlers come and go (and get cancelled when a browser disconnects); the anyio task
+        group behind stdio_client must not belong to one of them.
+        """
+        loop = asyncio.get_running_loop()
+        ready: asyncio.Future[None] = loop.create_future()
+        self._stopped = asyncio.Event()
+
+        async def owner() -> None:
+            try:
+                await self.start()
+            except BaseException as err:  # noqa: BLE001 - handed to the caller
+                ready.set_exception(err)
+                return
+            ready.set_result(None)
+            await self._stopped.wait()
+            await self.close()
+
+        self._owner = asyncio.create_task(owner())
+        await ready
+
     async def close(self) -> None:
         if self._stack:
             await self._stack.aclose()
