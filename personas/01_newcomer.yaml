@@ -1,4 +1,5 @@
 id: newcomer
+avatar: "🧭"
 name: Newcomer guide
 tagline: Just arrived? I'll walk you through it, step by step.
 system_prompt: |
