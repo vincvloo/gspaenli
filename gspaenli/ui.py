@@ -1,4 +1,4 @@
-"""Gradio UI: persona picker, chat, and a "How I answered" panel under every answer.
+"""Gradio UI: persona cards, chat, a "How I answered" panel under every answer, guided tour.
 
 Local run:  uv run python -m gspaenli.ui
 On Modal:   modal_app.py mounts create_app() as an ASGI app.
@@ -10,47 +10,48 @@ import asyncio
 import json
 import logging
 import os
+import tempfile
+import time
+from pathlib import Path
 from typing import Any
 
 os.environ.setdefault("GRADIO_ANALYTICS_ENABLED", "False")  # no telemetry from a public demo
 
 import gradio as gr  # noqa: E402
 
-from .config import Settings
-from .llm import LLMClient
-from .mcp_client import SwissMCP
-from .orchestrator import Orchestrator, Trace
-from .personas import Persona, load_personas
-from .ratelimit import RateLimiter
+from .config import Settings  # noqa: E402
+from .llm import LLMClient  # noqa: E402
+from .mcp_client import SwissMCP  # noqa: E402
+from .orchestrator import Orchestrator, Trace  # noqa: E402
+from .personas import Persona, load_personas  # noqa: E402
+from .ratelimit import RateLimiter  # noqa: E402
+from .ui_assets import (  # noqa: E402
+    BASE_CSS,
+    MCP_URL,
+    REPO_URL,
+    AVATAR_COLORS,
+    avatar_png,
+    header_html,
+    persona_css,
+    persona_label,
+    placeholder_md,
+    status_html,
+    theme,
+    tour_head,
+)
 
 log = logging.getLogger(__name__)
 
 MAX_QUESTION_CHARS = 500
 HISTORY_MESSAGES = 8
-
-ONBOARDING = """# Gspänli
-**Swiss answers, your choice of personality.**
-
-Pick a personality and ask about life in Switzerland: health insurance, residence permits, housing, school holidays, political rights and more. Ask in English, French, German or Italian, and you get the answer in your language, even when the source is in another one.
-
-Each answer is grounded in one lookup in official Swiss data through the [Swiss MCP server](https://github.com/dantevier/swiss-ai-week-mcp), and written by [Apertus](https://huggingface.co/swiss-ai/Apertus-8B-Instruct-2509), the Swiss open model, running on [Modal](https://modal.com). Open **How I answered** under an answer to see the tool, its arguments and the source.
-
-This is a proof of concept: check important figures at the linked source. The model sleeps when nobody uses it, so the first answer can take about 2 minutes."""
+# The GPU scales down after 5 idle minutes; call it ready a bit less than that.
+READY_WINDOW_S = 270
 
 COLD_START_NOTICE = (
     "The model is waking up (it sleeps when idle to save GPU costs). "
     "The first answer takes about 2 minutes, the next ones a few seconds."
 )
 ERROR_MESSAGE = "Sorry, something went wrong on my side. Please try again in a minute."
-
-CSS = """
-.gradio-container { max-width: 900px !important; margin: auto; }
-.persona-card p { margin: 0.2em 0; }
-"""
-
-
-def persona_card(persona: Persona) -> str:
-    return f"**{persona.name}**: {persona.tagline}"
 
 
 def format_trace(trace: Trace) -> str:
@@ -83,7 +84,7 @@ def format_trace(trace: Trace) -> str:
 
 
 class Runtime:
-    """Shared per container: personas, LLM client, one MCP subprocess, rate limits."""
+    """Shared per container: personas, LLM client, one MCP subprocess, rate limits, model state."""
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
@@ -95,8 +96,27 @@ class Runtime:
             json_schema_supported=settings.llm_json_schema,
         )
         self.limiter = RateLimiter()
+        self.avatars = self._write_avatars(self.personas)
+        self.last_ok = 0.0
+        self.waking = False
         self._orchestrator: Orchestrator | None = None
         self._lock = asyncio.Lock()
+
+    @staticmethod
+    def _write_avatars(personas: dict[str, Persona]) -> dict[str, str]:
+        folder = Path(tempfile.mkdtemp(prefix="gspaenli-avatars-"))
+        paths = {}
+        for i, persona in enumerate(personas.values()):
+            path = folder / f"{persona.id}.png"
+            avatar_png(persona.name[0].upper(), AVATAR_COLORS[i % len(AVATAR_COLORS)], str(path))
+            paths[persona.id] = str(path)
+        return paths
+
+    def model_state(self) -> str:
+        """From what the app already knows. Never polls the GPU: any request would wake it."""
+        if self.waking:
+            return "waking"
+        return "ready" if time.time() - self.last_ok < READY_WINDOW_S else "asleep"
 
     async def orchestrator(self) -> Orchestrator:
         async with self._lock:
@@ -114,80 +134,117 @@ def build_demo(runtime: Runtime) -> gr.Blocks:
     personas = runtime.personas
     first = next(iter(personas.values()))
 
+    def status() -> str:
+        return status_html(runtime.model_state())
+
     async def respond(message: str, persona_id: str, chat: list, history: list, session: dict):
         message = (message or "").strip()[:MAX_QUESTION_CHARS]
         if not message:
-            yield chat, history, session, ""
+            yield chat, history, session, "", status()
             return
         chat = [*chat, {"role": "user", "content": message}]
         if blocked := runtime.limiter.check(session):
-            yield [*chat, {"role": "assistant", "content": blocked}], history, session, ""
+            yield [*chat, {"role": "assistant", "content": blocked}], history, session, "", status()
             return
-        yield chat, history, session, ""
+        yield chat, history, session, "", status()
 
-        if not await runtime.llm.is_ready():
-            notice = {"role": "assistant", "content": COLD_START_NOTICE, "metadata": {"title": "Waking up", "status": "pending"}}
-            yield [*chat, notice], history, session, ""
+        if runtime.model_state() != "ready" and not await runtime.llm.is_ready():
+            runtime.waking = True
+            notice = {
+                "role": "assistant",
+                "content": COLD_START_NOTICE,
+                "metadata": {"title": "Waking up the model", "status": "pending"},
+            }
+            yield [*chat, notice], history, session, "", status()
         try:
             orchestrator = await runtime.orchestrator()
             turn = await orchestrator.answer(message, persona_id, history)
+            runtime.last_ok = time.time()
         except Exception:
             log.exception("turn failed")
-            yield [*chat, {"role": "assistant", "content": ERROR_MESSAGE}], history, session, ""
+            runtime.waking = False
+            yield [*chat, {"role": "assistant", "content": ERROR_MESSAGE}], history, session, "", status()
             return
+        runtime.waking = False
 
         chat = [
             *chat,
             {"role": "assistant", "content": turn.answer},
-            {"role": "assistant", "content": format_trace(turn.trace), "metadata": {"title": "How I answered", "status": "done"}},
+            {
+                "role": "assistant",
+                "content": format_trace(turn.trace),
+                "metadata": {"title": "How I answered", "status": "done"},
+            },
         ]
         history = [*history, {"role": "user", "content": message}, {"role": "assistant", "content": turn.answer}]
-        yield chat, history[-HISTORY_MESSAGES:], session, ""
+        yield chat, history[-HISTORY_MESSAGES:], session, "", status()
 
     def switch_persona(persona_id: str):
         persona = personas[persona_id]
+        chat = gr.update(
+            value=[],
+            placeholder=placeholder_md(persona),
+            avatar_images=(None, runtime.avatars[persona.id]),
+        )
         examples = [gr.update(value=q) for q in persona.example_questions]
-        return persona_card(persona), *examples, [], []
+        return chat, *examples, []
 
     with gr.Blocks(title="Gspänli", analytics_enabled=False) as demo:
-        gr.Markdown(ONBOARDING)
+        gr.HTML(header_html(), elem_id="gs-header")
+        with gr.Row(elem_id="gs-toolbar"):
+            status_pill = gr.HTML(status(), elem_id="gs-status")
+            tour = gr.Button("Take the tour", size="sm", variant="secondary", elem_id="gs-tour-btn")
         persona = gr.Radio(
-            choices=[(p.name, p.id) for p in personas.values()], value=first.id, label="Personality"
+            choices=[(persona_label(p), p.id) for p in personas.values()],
+            value=first.id,
+            show_label=False,
+            container=False,
+            elem_id="gs-personas",
         )
-        card = gr.Markdown(persona_card(first), elem_classes="persona-card")
-        with gr.Row():
-            example_buttons = [gr.Button(q, size="sm") for q in first.example_questions]
         chatbot = gr.Chatbot(
-            label="Chat",
-            height=520,
-            placeholder="Pick a personality, then ask a question or click an example.",
+            show_label=False,
+            height=480,
+            placeholder=placeholder_md(first),
+            avatar_images=(None, runtime.avatars[first.id]),
+            elem_id="gs-chat",
         )
-        with gr.Row():
+        with gr.Row(elem_id="gs-examples"):
+            example_buttons = [gr.Button(q, size="sm", variant="secondary") for q in first.example_questions]
+        with gr.Row(elem_id="gs-input"):
             box = gr.Textbox(
                 placeholder="Ask in English, French, German or Italian",
                 show_label=False,
+                container=False,
                 scale=8,
                 max_lines=4,
-                autofocus=True,
             )
-            ask = gr.Button("Ask", variant="primary", scale=1)
-        new_chat = gr.Button("New conversation", size="sm")
+            ask = gr.Button("Ask", variant="primary", scale=1, elem_id="gs-ask")
+        new_chat = gr.Button("New conversation", size="sm", variant="secondary")
+        gr.HTML(
+            "<p class='gs-footnote'>Proof of concept. Answers can contain mistakes: check figures at the "
+            f"linked source. Data: <a href='{MCP_URL}' target='_blank'>Swiss MCP</a>. "
+            f"Model: Apertus 8B on Modal. <a href='{REPO_URL}' target='_blank'>Source code</a>.</p>"
+        )
 
         history = gr.State([])
         session = gr.State({})
-        outputs: list[Any] = [chatbot, history, session, box]
+        outputs: list[Any] = [chatbot, history, session, box, status_pill]
 
         for trigger in (ask.click, box.submit):
             trigger(respond, [box, persona, chatbot, history, session], outputs, concurrency_limit=8)
         for button in example_buttons:
             button.click(respond, [button, persona, chatbot, history, session], outputs, concurrency_limit=8)
-        persona.change(switch_persona, persona, [card, *example_buttons, chatbot, history])
+        persona.change(switch_persona, persona, [chatbot, *example_buttons, history])
         new_chat.click(lambda: ([], []), None, [chatbot, history])
+        tour.click(None, js="() => window.gspaenliTour && window.gspaenliTour()")
+        # Cheap refresh of the pill from in-memory state; no network call.
+        demo.load(status, None, status_pill)
+        gr.Timer(60).tick(status, None, status_pill)
     return demo
 
 
-def theme() -> gr.themes.Base:
-    return gr.themes.Soft(primary_hue="red", neutral_hue="slate")
+def page_css(runtime: Runtime) -> str:
+    return BASE_CSS + persona_css(list(runtime.personas.values()))
 
 
 def create_app():
@@ -196,10 +253,19 @@ def create_app():
     from gradio.routes import mount_gradio_app
 
     logging.basicConfig(level=logging.INFO)
-    demo = build_demo(Runtime(Settings.from_env()))
-    return mount_gradio_app(app=FastAPI(), blocks=demo, path="/", theme=theme(), css=CSS, footer_links=[])
+    runtime = Runtime(Settings.from_env())
+    return mount_gradio_app(
+        app=FastAPI(),
+        blocks=build_demo(runtime),
+        path="/",
+        theme=theme(),
+        css=page_css(runtime),
+        head=tour_head(),
+        footer_links=[],
+    )
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    build_demo(Runtime(Settings.from_env())).launch(theme=theme(), css=CSS)
+    runtime = Runtime(Settings.from_env())
+    build_demo(runtime).launch(theme=theme(), css=page_css(runtime), head=tour_head())

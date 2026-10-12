@@ -16,6 +16,7 @@ class Persona(BaseModel):
     preferred_tools: list[str] = Field(min_length=1)
     example_questions: list[str] = Field(min_length=3, max_length=3)
     language_hint: str
+    avatar: str = "💬"  # emoji for the persona card and chat avatar
 
     @field_validator("id")
     @classmethod

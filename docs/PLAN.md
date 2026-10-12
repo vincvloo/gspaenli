@@ -156,3 +156,17 @@ Modal secrets I will ask you to create (you run the commands):
 ### Time budget
 
 PR1 45 min, PR2 40 min, PR3 75 min, PR4 50 min, PR5 20 min. Optional items only if time is left.
+
+## Changes after approval (2026-10-13)
+
+Agreed during implementation:
+
+- **PR 5: UI polish and guided tour** (new). Persona cards, Swiss visual identity (light and dark),
+  persona avatars, empty state, model status pill, mobile layout, and a step-by-step in-app tour with
+  Skip, shown once per browser. The status pill never polls the GPU: any request to the LLM endpoint,
+  even `/health`, wakes it and costs credit.
+- **PR 6: README and landing page.** The README as planned, plus a static landing page on GitHub
+  Pages (`docs/`) that links to the Modal app. The app stays on Modal because it needs secrets, the
+  MCP subprocess and the GPU.
+- **PR 7 (optional): evals**, Apertus vs an alternative model (was PR 6).
+- **PR 8 (optional): voice and a static chat front end** (was PR 7).

@@ -49,3 +49,52 @@ def test_rate_limiter_per_session_interval_and_day():
     assert "daily limit" in limiter.check({})
     now[0] += 86_400
     assert limiter.check({}) is None  # new day resets the global counter
+
+
+def test_status_pill_states():
+    from gspaenli.ui_assets import status_html
+
+    assert "gs-pill-ready" in status_html("ready") and "Model ready" in status_html("ready")
+    assert "gs-pill-waking" in status_html("waking")
+    assert "asleep" in status_html("asleep")
+
+
+def test_persona_css_escapes_taglines(personas):
+    from gspaenli.ui_assets import persona_css
+
+    css = persona_css(list(personas.values()))
+    assert css.count("::after") == len(personas)
+    assert '"Rules are rules. But I\'ll help you. This time."' in css
+
+
+def test_tour_targets_exist_in_ui():
+    from pathlib import Path
+
+    from gspaenli.ui_assets import TOUR_STEPS
+
+    ui_source = Path("gspaenli/ui.py").read_text(encoding="utf-8")
+    for selector, _, _ in TOUR_STEPS:
+        assert f'elem_id="{selector[1:]}"' in ui_source, selector
+
+
+def test_ui_text_has_no_em_dashes():
+    from pathlib import Path
+
+    for path in ["gspaenli/ui.py", "gspaenli/ui_assets.py", *map(str, Path("personas").glob("*.yaml"))]:
+        assert "—" not in Path(path).read_text(encoding="utf-8"), path
+
+
+def test_model_state_never_needs_the_network(monkeypatch):
+    import time
+
+    from gspaenli.ui import READY_WINDOW_S, Runtime
+
+    rt = Runtime.__new__(Runtime)  # no LLM client or avatars needed
+    rt.waking, rt.last_ok = False, 0.0
+    assert rt.model_state() == "asleep"
+    rt.last_ok = time.time()
+    assert rt.model_state() == "ready"
+    rt.last_ok = time.time() - READY_WINDOW_S - 1
+    assert rt.model_state() == "asleep"
+    rt.waking = True
+    assert rt.model_state() == "waking"
