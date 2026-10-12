@@ -76,5 +76,7 @@ def test_extract_sources_from_nested_json():
     ]
 
 
-def test_extract_sources_ignores_non_json():
-    assert extract_sources("plain text with https://x.example") == []
+def test_extract_sources_from_plain_text():
+    text = "Holidays ... Source: OpenHolidays (CC BY 4.0) — https://openholidaysapi.org/x?a=1. See https://openholidaysapi.org/x?a=1"
+    assert extract_sources(text) == ["https://openholidaysapi.org/x?a=1"]
+    assert extract_sources("no links here") == []

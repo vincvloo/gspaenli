@@ -6,6 +6,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import sys
 import time
 from contextlib import AsyncExitStack
@@ -84,7 +85,9 @@ def extract_sources(text: str, limit: int = 5) -> list[str]:
     try:
         data = json.loads(text)
     except (json.JSONDecodeError, TypeError):
-        return []
+        # Some tools return plain text with the source URL inline.
+        urls = re.findall(r"https?://[^\s)\]>\"']+", text or "")
+        return list(dict.fromkeys(u.rstrip(".,;") for u in urls))[:limit]
     found: list[str] = []
 
     def walk(node: Any) -> None:
@@ -104,9 +107,11 @@ def extract_sources(text: str, limit: int = 5) -> list[str]:
 
 
 def server_params(mcp_dir: Path) -> StdioServerParameters:
+    # Windows has no system time zone database; the MCP needs Europe/Zurich (school holidays).
+    extra = ["--with", "tzdata"] if sys.platform == "win32" else []
     return StdioServerParameters(
         command="uv",
-        args=["run", "--frozen", "--directory", str(mcp_dir), "python", "-m", "mcp_swiss_info.main"],
+        args=["run", "--frozen", *extra, "--directory", str(mcp_dir), "python", "-m", "mcp_swiss_info.main"],
         env={**os.environ, "PYTHONIOENCODING": "utf-8"},
     )
 
