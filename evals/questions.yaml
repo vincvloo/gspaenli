@@ -1,0 +1,64 @@
+# Each question: expected tool and reply language. source_lang marks questions where the
+# grounding source is in another language than the question (cross-language cases).
+- id: premium_en
+  persona: newcomer
+  question: What is the minimum health insurance premium in Lausanne for an adult?
+  lang: en
+  expected_tool: swiss_health_insurance_premiums
+- id: premium_fr
+  persona: newcomer
+  question: Quelle est la prime minimale d'assurance maladie à Lausanne pour un adulte ?
+  lang: fr
+  expected_tool: swiss_health_insurance_premiums
+- id: premium_de_young
+  persona: fedlex_clerk
+  question: Wie hoch ist die günstigste Krankenkassenprämie in Zürich für eine 24-jährige Person mit Franchise 2500?
+  lang: de
+  expected_tool: swiss_health_insurance_premiums
+- id: premium_it
+  persona: buenzli
+  question: Quanto costa al minimo la cassa malati a Lugano per un adulto?
+  lang: it
+  expected_tool: swiss_health_insurance_premiums
+- id: permit_fr
+  persona: newcomer
+  question: Je viens d'arriver d'Allemagne pour travailler, quel permis de séjour me faut-il ?
+  lang: fr
+  expected_tool: swiss_residence_permit_guidance
+- id: initiative_en
+  persona: fedlex_clerk
+  question: How many signatures does a federal popular initiative need?
+  lang: en
+  expected_tool: swiss_federal_political_rights
+  source_lang: de
+- id: national_council_it
+  persona: fedlex_clerk
+  question: Chi può votare alle elezioni del Consiglio nazionale?
+  lang: it
+  expected_tool: swiss_federal_political_rights
+  source_lang: de
+- id: parcel_vat_de
+  persona: fedlex_clerk
+  question: Wie viel Mehrwertsteuer zahle ich auf ein Paket im Wert von 200 Franken aus dem Ausland?
+  lang: de
+  expected_tool: swiss_import_parcel_vat
+- id: reference_rate_en
+  persona: buenzli
+  question: What is the current reference interest rate for rents?
+  lang: en
+  expected_tool: swiss_reference_interest_rate
+- id: holidays_fr
+  persona: buenzli
+  question: Quand sont les vacances scolaires d'automne dans le canton de Vaud ?
+  lang: fr
+  expected_tool: swiss_school_holidays
+- id: licence_en
+  persona: newcomer
+  question: Can I exchange my US driving licence in Zurich?
+  lang: en
+  expected_tool: get_driving_licence_exchange_info
+- id: waste_de
+  persona: buenzli
+  question: Wann ist in Bern die Kehrichtabfuhr und wie entsorge ich Karton?
+  lang: de
+  expected_tool: search_knowledge

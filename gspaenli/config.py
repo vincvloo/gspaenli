@@ -27,6 +27,7 @@ class Settings:
     llm_base_url: str
     llm_api_key: str
     model_id: str
+    llm_json_schema: bool
     mcp_dir: Path
     personas_dir: Path
 
@@ -40,6 +41,8 @@ class Settings:
             llm_base_url=os.environ.get("LLM_BASE_URL", ""),
             llm_api_key=os.environ.get("LLM_API_KEY", ""),
             model_id=os.environ.get("MODEL_ID", DEFAULT_MODEL_ID),
+            # vLLM supports JSON schema output; set false for endpoints that do not.
+            llm_json_schema=os.environ.get("LLM_JSON_SCHEMA", "true").lower() != "false",
             mcp_dir=mcp_dir,
             personas_dir=Path(os.environ.get("PERSONAS_DIR", ROOT / "personas")),
         )
