@@ -352,3 +352,45 @@ def summarize_premiums(text: str) -> str:
         f"({with_['insurer']}, {with_['model']})."
     )
     return line + "\n" + text
+
+
+SEARCH_TOOLS = {"search_knowledge"}
+# Words that say nothing about the topic. Place names are removed separately.
+STOPWORDS = set(
+    """
+    what when where which how much many does have with from that this your about there their would could
+    should into than then them they were will just also only some more most other such very
+    quel quelle quels quelles quand comment combien pour avec dans sont nous vous leur mais plus tres
+    est-ce faut dois peux suis cette celui entre
+    wann wie viel viele welche welcher welches warum wird werden sind habe haben kann muss soll ich mich
+    mein meine eine einen einem einer oder aber auch noch nicht dann diese dieser dort hier fuer ueber
+    quale quali quanto quanta quando come dove sono della delle degli dello nella nelle questo questa
+    posso devo anche molto perche
+    switzerland swiss schweiz schweizer suisse svizzera svizzero canton kanton cantone commune gemeinde comune
+    """.split()
+)
+
+
+def topic_words(text: str, mcp_dir: Path) -> set[str]:
+    """Content words of a question or query, without stopwords and place names."""
+    words = set(normalize(text).split())
+    return {
+        w
+        for w in words
+        if len(w) >= 4 and w not in STOPWORDS and not w.isdigit()
+        and canton_code(w) is None and lookup_bfs(w, mcp_dir) is None
+    }
+
+
+def search_is_relevant(question: str, arguments: dict[str, Any], result_text: str, mcp_dir: Path) -> bool:
+    """False when no topic word of the question (or of the model's query) appears in the passages.
+
+    Keyword search matched Bern's moving page for a question about Bern's waste collection on
+    the place name alone, and both models then invented a schedule.
+    """
+    words = topic_words(question, mcp_dir) | topic_words(str(arguments.get("query", "")), mcp_dir)
+    if not words:
+        return True  # nothing to check against
+    passages = normalize(result_text)
+    # Prefixes catch inflections: entsorge / Entsorgung, Karton / Kartons.
+    return any(w[:6] in passages for w in words)

@@ -113,7 +113,9 @@ async def test_unrepairable_non_answer_is_flagged_as_missing_data(personas, plac
     llm = FakeLLM([_route("swiss_federal_political_rights", {"topic": "initiative"}), "No data."])
     turn = await Orchestrator(llm, mcp, personas, places_db).answer("Initiative?", "fedlex_clerk")
     assert turn.trace.tool_error == "no rule found"
-    assert "Do not answer from memory" in llm.calls[1]["messages"][-1]["content"]
+    system = llm.calls[1]["messages"][0]["content"]
+    assert "found nothing" in system and "Not even ones you know" in system
+    assert "no rule found" not in str(llm.calls[1]["messages"])  # no tool output to improvise from
 
 
 async def test_invented_coordinates_go_to_full_text_search(personas, places_db):
@@ -168,3 +170,44 @@ def test_router_sees_eu_countries_for_permits():
 
     tools = {PERMIT_TOOL: ToolInfo(PERMIT_TOOL, "Permit guidance.", {"properties": {"group": {"type": "string"}}})}
     assert "Germany" in router_tools(tools)[PERMIT_TOOL].description
+
+
+
+async def test_irrelevant_search_results_become_no_data(personas, places_db):
+    # Regression: keyword search matched only the place name and both models invented a schedule.
+    passages = {"method": "keyword_fallback", "results": [
+        {"url": "https://www.bern.ch/themen/zuzug-umzug-wegzug/", "passage": "Willkommen in der Stadt Bern. Umzug melden."}
+    ]}
+    mcp = FakeMCP({"search_knowledge": passages})
+    llm = FakeLLM([_route("search_knowledge", {"query": "Kehrichtabfuhr Bern Karton"}, "de"), "Nicht gefunden."])
+    turn = await Orchestrator(llm, mcp, personas, places_db).answer(
+        "Wann ist in Bern die Kehrichtabfuhr und wie entsorge ich Karton?", "buenzli"
+    )
+    assert "matches the topic" in turn.trace.tool_error
+    assert turn.trace.sources == []
+    assert "found nothing" in llm.calls[1]["messages"][0]["content"]
+
+
+async def test_relevant_search_results_are_kept(personas, places_db):
+    passages = {"results": [{"url": "https://www.regiunebvm.ch/de/kehricht/", "passage": "Kehricht und Karton werden ..."}]}
+    mcp = FakeMCP({"search_knowledge": passages})
+    llm = FakeLLM([_route("search_knowledge", {"query": "Kehricht Karton Scuol"}, "de"), "Antwort"])
+    turn = await Orchestrator(llm, mcp, personas, places_db).answer("Wann ist die Kehrichtabfuhr in Scuol?", "buenzli")
+    assert turn.trace.tool_error is None and turn.trace.sources == ["https://www.regiunebvm.ch/de/kehricht/"]
+
+
+async def test_no_tool_for_a_real_question_falls_back_to_search(personas, places_db):
+    mcp = FakeMCP({"search_knowledge": {"results": [{"url": "https://x", "passage": "Umzug melden"}]}})
+    llm = FakeLLM([_route("none", {}, "de"), "Nicht gefunden."])
+    turn = await Orchestrator(llm, mcp, personas, places_db).answer(
+        "Wann ist in Bern die Kehrichtabfuhr und wie entsorge ich Karton?", "buenzli"
+    )
+    assert mcp.calls[0][0] == "search_knowledge"
+    assert turn.trace.tool_error  # nothing relevant, so the honest no-data answer
+
+
+async def test_greetings_still_need_no_tool(personas, places_db):
+    mcp = FakeMCP()
+    llm = FakeLLM([_route("none", {}, "it"), "Ciao!"])
+    await Orchestrator(llm, mcp, personas, places_db).answer("Ciao, come stai?", "buenzli")
+    assert mcp.calls == []

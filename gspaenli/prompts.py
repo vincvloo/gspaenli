@@ -49,9 +49,11 @@ def language_scores(text: str) -> dict[str, int]:
     """Stopword hits per language."""
     words = re.findall(r"[a-zàâäçéèêëîïôöùûüß']+", text.lower())
     markers = {
-        "fr": {"le", "la", "les", "est", "quel", "quelle", "pour", "je", "des", "une", "combien", "comment", "dans", "du"},
+        "fr": {"le", "les", "est", "quel", "quelle", "pour", "je", "des", "une", "combien", "comment", "dans", "du",
+               "vous", "sont", "aux", "avec", "pas", "peut"},
         "de": {"der", "die", "das", "ist", "ich", "wie", "was", "für", "und", "ein", "eine", "viel", "wann", "kann"},
-        "it": {"il", "lo", "gli", "è", "che", "per", "quanto", "come", "della", "del", "una", "posso", "chi", "quando"},
+        "it": {"il", "lo", "gli", "è", "che", "per", "quanto", "come", "della", "del", "una", "posso", "chi", "quando",
+               "alle", "dai", "dei", "delle", "nel", "nella", "sono", "può", "anni", "questa", "questo", "sul"},
         "en": {"the", "is", "what", "how", "for", "and", "can", "my", "i", "do", "when", "much", "which", "in"},
     }
     return {lang: sum(w in vocab for w in words) for lang, vocab in markers.items()}
@@ -154,3 +156,27 @@ def build_answer_messages(
         f"Answer in {lang_name}, the language of the question. {REPLY_LANGUAGE_RULE}"
     )
     return [{"role": "system", "content": system}, *(history or [])[-4:], {"role": "user", "content": user}]
+
+
+NO_DATA_RULES = """The official lookup found nothing that answers this question.
+- In two or three short sentences, say that you could not find it in the official Swiss data.
+- Suggest asking the commune (or canton) or checking its official website, in general terms.
+- Give no facts, dates, schedules, figures, rules, names of offices or URLs. Not even ones you know."""
+
+
+def build_no_data_messages(question: str, persona: Persona, lang: str) -> list[dict[str, str]]:
+    """Answer prompt when the lookup failed or found nothing relevant.
+
+    Separate from build_answer_messages so there is no tool output to improvise from: with an
+    irrelevant result in the prompt, both models invented waste collection days for Bern.
+    """
+    lang_name = LANG_NAMES.get(lang, LANG_NAMES["en"])
+    system = "\n\n".join(
+        [persona.system_prompt.strip(), f"Style: {persona.language_hint}", NO_DATA_RULES, REPLY_LANGUAGE_RULE]
+    )
+    user = (
+        f"QUESTION: {question}\n\n"
+        f"Stay in character as {persona.name}. "
+        f"Answer in {lang_name}, the language of the question. {REPLY_LANGUAGE_RULE}"
+    )
+    return [{"role": "system", "content": system}, {"role": "user", "content": user}]

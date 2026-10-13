@@ -85,3 +85,12 @@ def test_detect_language_uses_model_label_for_short_questions():
     assert detect_language("Lausanne?", "fr") == "fr"
     assert detect_language("Grüezi", "de") == "de"
     assert detect_language("Lausanne?", None) == "en"
+
+
+def test_italian_answer_with_la_and_le_is_italian():
+    # Regression: the eval counted this Italian answer as French because of "La" and "Le".
+    text = (
+        "La cittadinanza svizzera può votare alle elezioni del Consiglio nazionale a partire dai 18 anni. "
+        "Le elezioni del Consiglio degli Stati seguono le norme cantonali."
+    )
+    assert guess_language(text) == "it"

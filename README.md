@@ -42,7 +42,7 @@ The model does not need native tool calling, so any OpenAI-compatible endpoint w
 
 ## Why prompting, not finetuning
 
-The goal was distinct personalities on top of reliable facts. A finetune would need hundreds of good in-character, multilingual, grounded answers per persona, and a GPU budget to train and evaluate them. We had neither, and a LoRA trained on a few dozen examples would mostly learn the style while hurting grounding and multilingual behaviour that Apertus already has. A system prompt gives the same voice control for free, can be changed in a YAML file in seconds, and keeps facts out of the weights where they would go stale. The real accuracy problems we hit (wrong language detection, invented ages, unknown municipality codes) were fixed in code, not in weights. Finetuning becomes worth it once there is a dataset of real conversations to learn from.
+The goal was distinct personalities on top of reliable facts. A finetune would need hundreds of good in-character, multilingual, grounded answers per persona, and a GPU budget to train and evaluate them. We had neither, and a LoRA trained on a few dozen examples would mostly learn the style while hurting grounding and multilingual behaviour that Apertus already has. A system prompt gives the same voice control for free, can be changed in a YAML file in seconds, and keeps facts out of the weights where they would go stale. The real accuracy problems we hit (wrong language detection, invented ages, unknown municipality codes) were fixed in code, not in weights. Finetuning becomes worth it once there is a dataset of real conversations to learn from. [What a finetune would take](docs/FINETUNE.md) sketches the data, cost on Modal and evaluation for a small LoRA.
 
 ## Evals
 
@@ -50,10 +50,10 @@ The goal was distinct personalities on top of reliable facts. A finetune would n
 
 | Model | Right tool | Right language | Fully grounded | Median time |
 |---|---|---|---|---|
-| Apertus 8B | 12/12 | 12/12 | 8/12 | 6.7 s |
-| Qwen3 8B | 12/12 | 12/12 | 11/12 | 10.7 s |
+| Apertus 8B | 12/12 | 12/12 | 10/12 | 10.4 s |
+| Qwen3 8B | 12/12 | 12/12 | 11/12 | 11.6 s |
 
-The first run looked good on tool choice alone (Apertus 11/12) but several answers came from the model's memory: a rejected tool call, invented coordinates, an invented date. Each of these became a small, tested fix in code (argument repair, retries, treating non-answers as missing data). Grounding is still the main gap, mostly where the data is thin.
+The first run looked good on tool choice alone (Apertus 11/12), but only about half of the answers were fully grounded: some came from the model's memory after a rejected tool call, invented coordinates or an invented date. Each problem became a small, tested fix in code: argument repair, treating non-answers as missing data, a relevance check on search results, and an honest "not in the official data" answer with nothing to improvise from.
 
 ## Run it yourself
 
@@ -100,7 +100,7 @@ Both Modal apps scale to zero. The GPU (L4, about $0.80 per hour) runs only whil
 
 - One tool call per turn. Questions that need two lookups get a partial answer.
 - Apertus 8B sometimes adds facts that are not in the data, especially when the lookup returns little (see [evals](evals/README.md)), or credits a source to the wrong office. The source links in the panel are always taken from the data.
-- When the data does not cover a question (for example waste collection days in Bern), both models tested tend to improvise instead of saying so.
+- When the data does not cover a question (for example waste collection days in Bern), the app says so. A question in one language against saved pages in another can also end up as "not found".
 - Persona flavour is uneven, especially for the Bünzli neighbour.
 - Data is what the Swiss MCP covers: premiums are 2026 only, some topics only exist as saved pages.
 - English, French, German and Italian are supported. Swiss German answers are not a goal.

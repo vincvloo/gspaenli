@@ -47,7 +47,7 @@ async def test_tool_exception_becomes_missing_data(personas, places_db):
     llm = FakeLLM([_route("search_knowledge", {"query": "x"}, "en"), "Sorry, no data."])
     turn = await Orchestrator(llm, mcp, personas, places_db).answer("x?", "fedlex_clerk")
     assert "pipe closed" in turn.trace.tool_error
-    assert "ERROR" in llm.calls[1]["messages"][-1]["content"]
+    assert "found nothing" in llm.calls[1]["messages"][0]["content"]
 
 
 async def test_unresolvable_place_skips_tool_call(personas, places_db):
