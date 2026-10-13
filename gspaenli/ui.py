@@ -57,28 +57,39 @@ ERROR_MESSAGE = "Sorry, something went wrong on my side. Please try again in a m
 def format_trace(trace: Trace) -> str:
     """Markdown for the collapsible "How I answered" panel."""
     lines = []
-    if trace.tool:
+    if len(trace.steps) > 1:
+        items = []
+        for i, step in enumerate(trace.steps, start=1):
+            args = json.dumps(step["arguments"], ensure_ascii=False)
+            status = f"no answer: {step['error']}" if step["error"] else f"{step['latency_s']:.1f} s"
+            items.append(f"{i}. `{step['tool']}` `{args}` ({status})")
+        lines.append(f"**Lookups ({len(trace.steps)}, Swiss MCP):**\n" + "\n".join(items))
+        lines.append(f"**Stopped because:** {trace.stop_reason}")
+    elif trace.tool:
         lines.append(f"**Tool:** `{trace.tool}` (Swiss MCP)")
+        if trace.arguments:
+            lines.append(f"**Arguments:** `{json.dumps(trace.arguments, ensure_ascii=False)}`")
     else:
         lines.append("**Tool:** none, no lookup was needed")
-    if trace.arguments:
-        lines.append(f"**Arguments:** `{json.dumps(trace.arguments, ensure_ascii=False)}`")
     if trace.notes:
-        lines.append("**Assumptions:** " + "; ".join(trace.notes))
+        lines.append("**Notes:**\n" + "\n".join(f"- {n}" for n in trace.notes))
     if trace.extra_calls:
         lines.append("**Extra lookups:** " + ", ".join(trace.extra_calls))
     if trace.fallback:
         lines.append("**Note:** the router could not pick a tool, so this used a full-text search.")
     if trace.tool_error:
         lines.append(f"**Tool error:** {trace.tool_error}")
+    if trace.removed_links:
+        lines.append("**Links removed (not in the data):** " + ", ".join(f"`{u}`" for u in trace.removed_links))
     if trace.sources:
         lines.append("**Sources:**\n" + "\n".join(f"- [{url}]({url})" for url in trace.sources))
     elif trace.tool:
         lines.append("**Sources:** none returned")
     lat = trace.latency_s
-    steps = [f"{name} {lat[name]:.1f} s" for name in ("route", "tool", "answer") if name in lat]
-    if steps:
-        lines.append(f"**Latency:** {', '.join(steps)}, total {lat.get('total', 0):.1f} s")
+    labels = {"route": "route", "tool": "lookups", "next_step": "next-step checks", "answer": "answer"}
+    parts = [f"{label} {lat[key]:.1f} s" for key, label in labels.items() if key in lat]
+    if parts:
+        lines.append(f"**Latency:** {', '.join(parts)}, total {lat.get('total', 0):.1f} s")
     lines.append(f"**Model:** `{trace.model_id}`, **reply language:** {trace.lang}")
     return "\n\n".join(lines)
 

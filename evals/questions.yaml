@@ -62,3 +62,29 @@
   question: Wann ist in Bern die Kehrichtabfuhr und wie entsorge ich Karton?
   lang: de
   expected_tool: search_knowledge
+# Multi-step: each needs two lookups. required_tools lists them (order free, repeats count).
+- id: multi_premiums_compare_en
+  persona: newcomer
+  question: Compare the minimum health insurance premium for an adult in Lausanne and in Geneva.
+  lang: en
+  expected_tool: swiss_health_insurance_premiums
+  required_tools: [swiss_health_insurance_premiums, swiss_health_insurance_premiums]
+- id: multi_premium_holidays_fr
+  persona: newcomer
+  question: Quelle est la prime minimale d'assurance maladie à Genève pour un adulte, et quand sont les vacances d'automne dans le canton de Genève ?
+  lang: fr
+  expected_tool: swiss_health_insurance_premiums
+  required_tools: [swiss_health_insurance_premiums, swiss_school_holidays]
+- id: multi_signatures_de
+  persona: fedlex_clerk
+  question: Wie viele Unterschriften braucht ein fakultatives Referendum und wie viele eine Volksinitiative?
+  lang: de
+  expected_tool: swiss_federal_political_rights
+  required_tools: [swiss_federal_political_rights, swiss_federal_political_rights]
+  source_lang: de
+- id: multi_rate_holidays_it
+  persona: buenzli
+  question: Qual è il tasso di riferimento per gli affitti e quando sono le vacanze autunnali in Ticino?
+  lang: it
+  expected_tool: swiss_reference_interest_rate
+  required_tools: [swiss_reference_interest_rate, swiss_school_holidays]

@@ -170,3 +170,7 @@ Agreed during implementation:
   MCP subprocess and the GPU.
 - **PR 7 (optional): evals**, Apertus vs an alternative model (was PR 6).
 - **PR 8 (optional): voice and a static chat front end** (was PR 7).
+- **PR 10: dynamic multi-step lookups** (asked for after the evals). One to three lookups per
+  question, decided in the orchestrator; the Swiss MCP is unchanged and only executes calls. The
+  "anything missing?" model call runs only for multi-part questions. The evals gained four
+  multi-step questions, one per language.

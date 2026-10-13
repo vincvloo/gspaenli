@@ -9,16 +9,25 @@ from gspaenli.personas import load_personas
 
 
 class FakeLLM:
-    """Returns scripted replies in order and records every request."""
+    """Returns scripted replies in order and records every request.
+
+    "Next lookup?" calls (their JSON schema has a "done" field) are answered from a separate
+    queue, `done` by default, so single-lookup tests only script route and answer.
+    """
 
     model_id = "fake/model"
 
-    def __init__(self, replies: list[str]) -> None:
+    def __init__(self, replies: list[str], next_steps: list[str] | None = None) -> None:
         self.replies = list(replies)
+        self.next_steps = list(next_steps or [])
         self.calls: list[dict[str, Any]] = []
+        self.next_calls: list[dict[str, Any]] = []
 
     async def chat(self, messages, *, max_tokens, temperature, json_schema=None) -> str:
-        self.calls.append({"messages": messages, "json_schema": json_schema})
+        if json_schema and "done" in json_schema.get("properties", {}):
+            self.next_calls.append({"messages": messages, "json_schema": json_schema})
+            return self.next_steps.pop(0) if self.next_steps else '{"done": true}'
+        self.calls.append({"messages": messages, "json_schema": json_schema, "max_tokens": max_tokens})
         return self.replies.pop(0)
 
 

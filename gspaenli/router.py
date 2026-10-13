@@ -15,7 +15,14 @@ from typing import Any
 from .llm import ChatModel
 from .mcp_client import ToolInfo
 from .personas import Persona
-from .prompts import SUPPORTED_LANGS, build_route_messages, detect_language, route_retry_message
+from .prompts import (
+    SUPPORTED_LANGS,
+    Lookup,
+    build_next_step_messages,
+    build_route_messages,
+    detect_language,
+    route_retry_message,
+)
 
 FALLBACK_TOOL = "search_knowledge"
 ROUTE_MAX_TOKENS = 200
@@ -107,3 +114,67 @@ async def route(
         fallback=True,
         raw=raw,
     )
+
+
+NEXT_STEP_MAX_TOKENS = 100  # a short JSON object; long replies cost seconds
+
+
+def next_step_schema(tool_names: list[str]) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "properties": {
+            # First on purpose: naming the gap before deciding helps small models.
+            "missing": {"type": "string"},
+            "done": {"type": "boolean"},
+            "tool": {"type": "string", "enum": [*tool_names, "none"]},
+            "arguments": {"type": "object"},
+        },
+        "required": ["missing", "done"],
+    }
+
+
+def parse_next_step(text: str, allowed: set[str]) -> tuple[str, dict[str, Any]] | None:
+    """(tool, arguments) for one more lookup, or None to stop.
+
+    Conservative on purpose: anything unclear means "done", so a confused model cannot loop.
+    """
+    try:
+        obj = _first_json_object(text)
+    except RouteError:
+        return None
+    if not isinstance(obj, dict) or obj.get("done") is not False:
+        return None
+    tool = obj.get("tool")
+    arguments = obj.get("arguments") or {}
+    if not isinstance(tool, str) or tool not in allowed or not isinstance(arguments, dict):
+        return None
+    return tool, arguments
+
+
+NOTHING_MISSING = {"", "nothing", "none", "n/a", "-", "rien", "nichts", "niente", "nulla"}
+
+
+def parse_missing(text: str) -> str | None:
+    """What the model said is still missing, when it said it is not done."""
+    try:
+        obj = _first_json_object(text)
+    except RouteError:
+        return None
+    if not isinstance(obj, dict) or obj.get("done") is not False:
+        return None
+    missing = str(obj.get("missing") or "").strip()
+    return None if missing.lower().strip(".") in NOTHING_MISSING else missing
+
+
+async def next_step(
+    llm: ChatModel,
+    question: str,
+    tools: dict[str, ToolInfo],
+    done: list[Lookup],
+    uncovered: list[str] | None = None,
+) -> tuple[tuple[str, dict[str, Any]] | None, str]:
+    """Ask whether another lookup is needed. Returns (next lookup or None, raw reply)."""
+    messages = build_next_step_messages(question, tools, done, uncovered)
+    schema = next_step_schema(sorted(tools))
+    text = await llm.chat(messages, max_tokens=NEXT_STEP_MAX_TOKENS, temperature=0.0, json_schema=schema)
+    return parse_next_step(text, set(tools)), text

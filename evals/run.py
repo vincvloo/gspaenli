@@ -16,6 +16,7 @@ import re
 import statistics
 import sys
 import time
+from collections import Counter
 from pathlib import Path
 
 import yaml
@@ -71,21 +72,36 @@ async def run(model_id: str, base_url: str, api_key: str, json_schema: bool) -> 
                 "route_attempts": t.route_attempts if t else None,
                 "tool_error": t.tool_error if t else error,
                 "latency_s": t.latency_s.get("total") if t else None,
+                "latency_stages": t.latency_s if t else {},
                 "notes": t.notes if t else [],
                 "answer": answer,
                 "tool_result": tool_text[:1500],
             }
-            row["tool_ok"] = row["tool"] == row["expected_tool"]
+            row["tools"] = [s["tool"] for s in t.steps] if t else []
+            row["lookups"] = len(row["tools"])
+            row["stop_reason"] = t.stop_reason if t else None
+            required = q.get("required_tools")
+            row["multi"] = bool(required)
+            if required:
+                row["tool_ok"] = not (Counter(required) - Counter(row["tools"]))
+            else:
+                row["tool_ok"] = row["tool"] == row["expected_tool"]
             row["lang_ok"] = row["answer_lang"] == row["expected_lang"]
             rows.append(row)
             mark = lambda ok: "ok " if ok else "XX "  # noqa: E731
             print(
                 f"{mark(row['tool_ok'])}{mark(row['lang_ok'])}{q['id']:<22} tool={row['tool']} "
-                f"lang={row['answer_lang']} {row['latency_s']}s",
+                f"lang={row['answer_lang']} lookups={row['lookups']} {row['latency_s']}s",
                 file=sys.stderr,
             )
 
     latencies = [r["latency_s"] for r in rows if r["latency_s"] is not None]
+    single = [r for r in rows if not r["multi"]]
+    multi = [r for r in rows if r["multi"]]
+
+    def median(values: list[float]) -> float | None:
+        return round(statistics.median(values), 1) if values else None
+
     summary = {
         "model": model_id,
         "questions": len(rows),
@@ -93,7 +109,14 @@ async def run(model_id: str, base_url: str, api_key: str, json_schema: bool) -> 
         "language_accuracy": sum(r["lang_ok"] for r in rows) / len(rows),
         "router_fallbacks": sum(bool(r["fallback"]) for r in rows),
         "tool_errors": sum(bool(r["tool_error"]) for r in rows),
-        "median_latency_s": round(statistics.median(latencies), 1) if latencies else None,
+        "median_latency_s": median(latencies),
+        "single_step_ok": sum(r["tool_ok"] for r in single),
+        "single_step_total": len(single),
+        "single_step_extra_lookups": sum(r["lookups"] > 1 for r in single),
+        "multi_step_ok": sum(r["tool_ok"] for r in multi),
+        "multi_step_total": len(multi),
+        "median_latency_single_s": median([r["latency_s"] for r in single if r["latency_s"] is not None]),
+        "median_latency_multi_s": median([r["latency_s"] for r in multi if r["latency_s"] is not None]),
         "warmup_s": warmup_s,
     }
     return {"summary": summary, "rows": rows}
@@ -113,8 +136,9 @@ def main() -> None:
     out.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
     sm = result["summary"]
     print(
-        f"| {sm['model']} | {sm['tool_accuracy']:.0%} | {sm['language_accuracy']:.0%} | "
-        f"{sm['router_fallbacks']} | {sm['tool_errors']} | {sm['median_latency_s']} s |"
+        f"| {sm['model']} | single {sm['single_step_ok']}/{sm['single_step_total']} "
+        f"(extra lookups {sm['single_step_extra_lookups']}) | multi {sm['multi_step_ok']}/{sm['multi_step_total']} | "
+        f"lang {sm['language_accuracy']:.0%} | {sm['median_latency_single_s']} s / {sm['median_latency_multi_s']} s |"
     )
     print(f"Saved {out}", file=sys.stderr)
 
