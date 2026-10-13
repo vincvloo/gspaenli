@@ -11,3 +11,18 @@ def test_eval_questions_cover_languages_and_cross_language():
     assert any(q.get("source_lang") and q["source_lang"] != q["lang"] for q in questions)
     assert all(q["expected_tool"] in ALLOWED_TOOLS for q in questions)
     assert len({q["id"] for q in questions}) == len(questions)
+
+
+def test_answer_language_ignores_urls_and_official_terms():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("evals_run", ROOT / "evals" / "run.py")
+    run = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(run)
+
+    english = (
+        "A federal popular initiative (eidgenössische Volksinitiative, die Unterschriften der Stimmberechtigten) "
+        "needs 100,000 signatures. Source: https://www.bk.admin.ch/de/die-volksinitiative-und-das-referendum"
+    )
+    assert run.answer_language(english) == "en"
+    assert run.answer_language("Les vacances d'automne sont du 10 au 25 octobre.") == "fr"

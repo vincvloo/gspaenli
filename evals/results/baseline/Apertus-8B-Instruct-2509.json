@@ -1,0 +1,252 @@
+{
+  "summary": {
+    "model": "swiss-ai/Apertus-8B-Instruct-2509",
+    "questions": 12,
+    "tool_accuracy": 0.9166666666666666,
+    "language_accuracy": 1.0,
+    "router_fallbacks": 0,
+    "tool_errors": 1,
+    "median_latency_s": 7.2,
+    "warmup_s": 118.6
+  },
+  "rows": [
+    {
+      "id": "premium_en",
+      "question": "What is the minimum health insurance premium in Lausanne for an adult?",
+      "expected_tool": "swiss_health_insurance_premiums",
+      "expected_lang": "en",
+      "tool": "swiss_health_insurance_premiums",
+      "arguments": {
+        "age": 30,
+        "municipality_code": 5586,
+        "franchise": 300
+      },
+      "routed_lang": "en",
+      "answer_lang": "en",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 9.56,
+      "answer": "1. The minimum health insurance premium for an adult in Lausanne in 2026 is 531.7 CHF, assuming a standard 300 CHF franchise.\n2. This information comes from a map comparing offers for Lausanne, which shows the minimum premium for an adult aged 30 with a 300 CHF franchise.\n3. To find the best insurance for you, compare offers from different insurers like Sanitas and Atupri.\n4. Visit the source map (https://kvgmapper26.github.io/maps/map-AKL-ERW-OHN-UNF-FRA-300.html) or other websites like https://www.priminfo.admin.ch/de/praemien for more up-to-date information.\n\nNext step: Compare offers from different insurers to find the best deal for you.",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "premium_fr",
+      "question": "Quelle est la prime minimale d'assurance maladie à Lausanne pour un adulte ?",
+      "expected_tool": "swiss_health_insurance_premiums",
+      "expected_lang": "fr",
+      "tool": "swiss_health_insurance_premiums",
+      "arguments": {
+        "age": 30,
+        "municipality_code": 5586,
+        "franchise": 300
+      },
+      "routed_lang": "fr",
+      "answer_lang": "fr",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 7.79,
+      "answer": "La prime minimale d'assurance maladie à Lausanne pour un adulte avec une franchise de 300 CHF est de 531.7 CHF, selon l'assureur Sanitas. Vous pouvez comparer les offres d'autres assureurs en visitant la carte des tarifs sur ce lien : [https://kvgmapper26.github.io/maps/map-AKL-ERW-OHN-UNF-FRA-300.html](https://kvgmapper26.github.io/maps/map-AKL-ERW-OHN-UNF-FRA-300.html).\n\nPour plus d'informations, consultez le site officiel du gouvernement : [https://www.priminfo.admin.ch/de/praemien](https://www.priminfo.admin.ch/de/praemien).",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "premium_de_young",
+      "question": "Wie hoch ist die günstigste Krankenkassenprämie in Zürich für eine 24-jährige Person mit Franchise 2500?",
+      "expected_tool": "swiss_health_insurance_premiums",
+      "expected_lang": "de",
+      "tool": "swiss_health_insurance_premiums",
+      "arguments": {
+        "age": 24,
+        "municipality_code": 261,
+        "franchise": 2500
+      },
+      "routed_lang": "de",
+      "answer_lang": "de",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 6.67,
+      "answer": "Die günstigste Krankenkassenprämie für eine 24-jährige Person mit einem Franchise von 2500 Franken in Zürich beträgt 225.9 Franken, wie aus der offiziellen Quelle hervorgeht. Diese Information stammt aus der Website zur Prämienkalkulation des Kantons Zürich, die über eine spezifische URL erreichbar ist. (Quelle: https://kvgmapper26.github.io/maps/map-AKL-JUG-OHN-UNF-FRA-2500.html)",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "premium_it",
+      "question": "Quanto costa al minimo la cassa malati a Lugano per un adulto?",
+      "expected_tool": "swiss_health_insurance_premiums",
+      "expected_lang": "it",
+      "tool": "swiss_health_insurance_premiums",
+      "arguments": {
+        "age": 30,
+        "municipality_code": 5192,
+        "franchise": 300
+      },
+      "routed_lang": "it",
+      "answer_lang": "it",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 6.12,
+      "answer": "Grüezi! Secondo i dati per Lugano, con una franchigia di 300 franchi svizzeri, il costo minimo della cassa malati per un adulto è di 554.7 franchi per il modello AGRIsmart senza copertura di incidenti, e di 583.9 franchi per il modello AGRIsmart con copertura di incidenti. Ti consiglio di consultare la fonte ufficiale per informazioni più aggiornate e dettagliate.",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "permit_fr",
+      "question": "Je viens d'arriver d'Allemagne pour travailler, quel permis de séjour me faut-il ?",
+      "expected_tool": "swiss_residence_permit_guidance",
+      "expected_lang": "fr",
+      "tool": "swiss_residence_permit_guidance",
+      "arguments": {
+        "group": "eu_efta",
+        "topic": "residence"
+      },
+      "routed_lang": "fr",
+      "answer_lang": "fr",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 7.76,
+      "answer": "1. Pour travailler en Suisse, vous avez besoin d'un permis de séjour. \n2. Ce permis dépendra de votre situation : être membre de l'UE/EEE, rejoindre votre conjoint ou votre famille, ou étudier à une université suisse. \n3. Vous trouverez plus d'informations sur l'Accord sur la libre circulation des personnes dans les FAQ : FAQ – Libre circulation des personnes.\n4. Pour savoir quel permis vous est nécessaire, vous pourrez consulter les faitsheets (des informations techniques sur les permis de séjour).\n\nVotre prochaine étape serait de consulter les sites Web officiels ou de contacter directement l'administration communale de votre domicile pour obtenir des informations précises.",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "initiative_en",
+      "question": "How many signatures does a federal popular initiative need?",
+      "expected_tool": "swiss_federal_political_rights",
+      "expected_lang": "en",
+      "tool": "swiss_federal_political_rights",
+      "arguments": {
+        "topic": "federal popular initiative"
+      },
+      "routed_lang": "en",
+      "answer_lang": "en",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 4.9,
+      "answer": "A federal popular initiative in Switzerland requires the collection of 100,000 valid signatures within 18 months. This number is derived from the Swiss Federal Constitution, specifically Article 139 (Referendum). The source cited is the Swiss Federal Constitution, with the official term in the source language being \"100 000 gültige Unterschriften innerhalb von 18 Monaten\" (100,000 valid signatures within 18 months).",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "national_council_it",
+      "question": "Chi può votare alle elezioni del Consiglio nazionale?",
+      "expected_tool": "swiss_federal_political_rights",
+      "expected_lang": "it",
+      "tool": "swiss_federal_political_rights",
+      "arguments": {
+        "topic": "national_council"
+      },
+      "routed_lang": "it",
+      "answer_lang": "it",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 7.33,
+      "answer": "Alle elezioni del Consiglio Nazionale, le cittadine e i cittadini svizzeri possono votare a partire dai 18 anni. Questo diritto è regolato dal diritto federale svizzero. Le elezioni per lo Ständerat, invece, seguono le regole cantonali. La fonte è un estratto in tedesco dal sito del Dipartimento federale dell'interno (\"Bundesamt für innere Angelegenheiten\"), reperito all'indirizzo https://www.bk.admin.ch/de/nationalratswahlen.",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "parcel_vat_de",
+      "question": "Wie viel Mehrwertsteuer zahle ich auf ein Paket im Wert von 200 Franken aus dem Ausland?",
+      "expected_tool": "swiss_import_parcel_vat",
+      "expected_lang": "de",
+      "tool": "swiss_import_parcel_vat",
+      "arguments": {
+        "goods_value_chf": 200.0,
+        "vat_rate": "8.1%"
+      },
+      "routed_lang": "de",
+      "answer_lang": "de",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 4.31,
+      "answer": "Das Paket im Wert von 200 Franken aus dem Ausland unterliegt der Schweizer Mehrwertsteuer von 8.1%. Die Mehrwertsteuer beträgt daher 16.20 Franken (8.1% von 200 Franken).\n\nQuelle: swiss_import_parcel_vat (TOOL RESULT)",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "reference_rate_en",
+      "question": "What is the current reference interest rate for rents?",
+      "expected_tool": "swiss_reference_interest_rate",
+      "expected_lang": "en",
+      "tool": "swiss_reference_interest_rate",
+      "arguments": {},
+      "routed_lang": "en",
+      "answer_lang": "en",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 7.16,
+      "answer": "The reference interest rate as of today is 1.25 percent. This rate controls the base for rent adjustments across the entire country and is effective from September 2nd, 2026. The average rate over the last quarter is 1.31 percent, as per the official publication dated September 1st, 2026. As of now, there has been no change in the reference interest rate since September 2nd, 2025.\n\nPlease note that while this rate applies nationally, individual rent adjustments depend on the specific contractual agreements. For more detailed information, you can refer to the official source at this URL: https://www.bwo.admin.ch/it/newnsb/Ozmbl-Ca5Ee4.\n\nGrüezi! (Good day!)",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "holidays_fr",
+      "question": "Quand sont les vacances scolaires d'automne dans le canton de Vaud ?",
+      "expected_tool": "swiss_school_holidays",
+      "expected_lang": "fr",
+      "tool": "swiss_school_holidays",
+      "arguments": {
+        "canton": "VD"
+      },
+      "routed_lang": "fr",
+      "answer_lang": "fr",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 3.3,
+      "answer": "Les vacances d'automne dans le canton de Vaud commencent le 10 octobre 2026 et se terminent le 25 octobre 2026. Grüezi.",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "licence_en",
+      "question": "Can I exchange my US driving licence in Zurich?",
+      "expected_tool": "get_driving_licence_exchange_info",
+      "expected_lang": "en",
+      "tool": "get_driving_licence_exchange_info",
+      "arguments": {
+        "canton": "ZH",
+        "fact_type": "exchange"
+      },
+      "routed_lang": "en",
+      "answer_lang": "en",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": "1 validation error for call[get_driving_licence_exchange_info]\nfact_type\n  Input should be 'all', 'fee', 'deadline' or 'requirement' [type=literal_error, input_value='exchange', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/literal_error",
+      "latency_s": 9.0,
+      "answer": "I'm sorry, but I can't provide an accurate answer to this question. The tool result includes an error and doesn't give any useful information. It seems like the system is encountering an issue with processing your query. I recommend visiting the website https://errors.pydantic.dev/2.13/v/literal_error for more information on this error.\n\nPlease reach out to the relevant authorities or your local embassy for accurate and up-to-date information on exchanging your US driving license in Zurich. You can also try contacting the Zurich Transportation Office or the Swiss Federal Office of Road Transport to inquire about this process.\n\nNext, you can compare offers and procedures at this link: https://www.zh.ch/verkehr/permisdeconduire/reconversionpermisdeconduire\n\nPlease note that exchanging a driving license can vary depending on the specific requirements of the canton (ZH) and the Swiss federal government. It's best to directly contact the authorities to ensure you have the most accurate and up-to-date information.",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "waste_de",
+      "question": "Wann ist in Bern die Kehrichtabfuhr und wie entsorge ich Karton?",
+      "expected_tool": "search_knowledge",
+      "expected_lang": "de",
+      "tool": "swiss_geo_context",
+      "arguments": {
+        "latitude": 46.9481,
+        "longitude": 7.4478
+      },
+      "routed_lang": "de",
+      "answer_lang": "de",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 8.6,
+      "answer": "Der Kehrichtabfuhr-Termin in Bern richtet sich nach den Anweisungen der Gemeinde. In der Regel findet die Abholung in der Woche statt, oft am Donnerstag.\n\nFür die Entsorgung von Karton empfehle ich, diesen sauber zu machen und in die gelbe Papiertonne zu werfen. Diese Papiertonnen werden in der Regel einmal pro Woche geleert. Wenn Sie Fragen zur Abfallentsorgung haben, sollten Sie sich an die zuständige Gemeindeverwaltung wenden oder die offiziellen Webseiten der Gemeinde Bern konsultieren. Die offizielle Quelle für Abfallentsorgungspläne in Bern finden Sie unter: https://www.bern.ch/sociales/abfall_ressourcen/was_wo_entsorgt_werden_kann.\n\nGerne nach dem offiziellen Plan, bitte!",
+      "tool_ok": false,
+      "lang_ok": true
+    }
+  ]
+}
