@@ -5,9 +5,9 @@
     "tool_accuracy": 1.0,
     "language_accuracy": 1.0,
     "router_fallbacks": 0,
-    "tool_errors": 0,
-    "median_latency_s": 10.7,
-    "warmup_s": 0.9
+    "tool_errors": 1,
+    "median_latency_s": 11.6,
+    "warmup_s": 178.5
   },
   "rows": [
     {
@@ -26,13 +26,13 @@
       "fallback": false,
       "route_attempts": 1,
       "tool_error": null,
-      "latency_s": 15.79,
+      "latency_s": 10.99,
       "notes": [
         "Lausanne is municipality Lausanne (BFS 5586)",
         "Assumed an adult aged 30 (adult rate from age 26)",
         "Assumed the 300 CHF franchise (deductible), the standard one; a higher franchise lowers the premium"
       ],
-      "answer": "The minimum health insurance premium in Lausanne for an adult aged 30, without accident cover, is 531.7 CHF per month. This is the lowest rate found for the standard 300 CHF deductible (franchise).\n\n1. The premium is for an adult aged 30, which falls into the adult_26_plus group.\n2. The 300 CHF franchise is the standard deductible amount.\n3. The cheapest option without accident cover is offered by Sanitas with the TelMed (Compact One) plan.\n4. If you choose a plan with accident cover, the minimum premium increases to 570.1 CHF with Atupri's HMO plan.\n\nYou can compare offers directly on the source map: [Lausanne health insurance premiums 2026](https://kvgmapper26.github.io/maps/map-AKL-ERW-OHN-UNF-FRA-300.html).",
+      "answer": "The minimum health insurance premium in Lausanne for an adult aged 30, without accident cover, is 531.7 CHF per month. This is the lowest rate offered by Sanitas with the TelMed (Compact One) model.\n\nTo compare offers, visit [this link](https://kvgmapper26.github.io/maps/map-AKL-ERW-OHN-UNF-FRA-300.html).",
       "tool_result": "SUMMARY: Lausanne, adult_26_plus, franchise 300 CHF, 2026. Cheapest monthly premium WITHOUT accident cover: 531.7 CHF (Sanitas, TelMed (Compact One)). Cheapest WITH accident cover: 570.1 CHF (Atupri, HMO).\n{\"status\":\"answered\",\"year\":2026,\"municipality\":\"Lausanne\",\"municipality_code\":5586,\"age_group\":\"adult_26_plus\",\"franchise_chf\":300,\"premiums\":[{\"accident_cover\":\"excluded\",\"minimum_premium\":\"531.7\",\"insurer\":\"Sanitas\",\"model\":\"TelMed (Compact One)\",\"source_url\":\"https://kvgmapper26.github.io/maps/map-AKL-ERW-OHN-UNF-FRA-300.html\"},{\"accident_cover\":\"included\",\"minimum_premium\":\"570.1\",\"insurer\":\"Atupri\",\"model\":\"HMO\",\"source_url\":\"https://kvgmapper26.github.io/maps/map-AKL-ERW-MIT-UNF-FRA-300.html\"}],\"official_reference\":\"https://www.priminfo.admin.ch/de/praemien\",\"message\":\"2026 only; not valid for 2027. Amounts are as shown on the source map.\"}",
       "tool_ok": true,
       "lang_ok": true
@@ -53,13 +53,13 @@
       "fallback": false,
       "route_attempts": 1,
       "tool_error": null,
-      "latency_s": 11.23,
+      "latency_s": 11.85,
       "notes": [
         "Lausanne is municipality Lausanne (BFS 5586)",
         "Assumed an adult aged 30 (adult rate from age 26)",
         "Assumed the 300 CHF franchise (deductible), the standard one; a higher franchise lowers the premium"
       ],
-      "answer": "La prime minimale d'assurance maladie à Lausanne pour un adulte (âgé de 30 ans) est de **531.7 CHF par mois**, sans couverture accident. Cela correspond à l'offre de Sanitas avec le modèle TelMed (Compact One).\n\nPour comparer les offres, tu peux consulter ce lien : [https://kvgmapper26.github.io/maps/map-AKL-ERW-OHN-UNF-FRA-300.html](https://kvgmapper26.github.io/maps/map-AKL-ERW-OHN-UNF-FRA-300.html).",
+      "answer": "La prime minimale d'assurance maladie à Lausanne pour un adulte (âgé de 30 ans) en 2026, sans couverture accident, est de 531.7 CHF. Cela correspond à l'assurance Sanitas avec le modèle TelMed (Compact One).\n\nPour comparer les offres, tu peux consulter ce lien : [https://kvgmapper26.github.io/maps/map-AKL-ERW-OHN-UNF-FRA-300.html](https://kvgmapper26.github.io/maps/map-AKL-ERW-OHN-UNF-FRA-300.html).",
       "tool_result": "SUMMARY: Lausanne, adult_26_plus, franchise 300 CHF, 2026. Cheapest monthly premium WITHOUT accident cover: 531.7 CHF (Sanitas, TelMed (Compact One)). Cheapest WITH accident cover: 570.1 CHF (Atupri, HMO).\n{\"status\":\"answered\",\"year\":2026,\"municipality\":\"Lausanne\",\"municipality_code\":5586,\"age_group\":\"adult_26_plus\",\"franchise_chf\":300,\"premiums\":[{\"accident_cover\":\"excluded\",\"minimum_premium\":\"531.7\",\"insurer\":\"Sanitas\",\"model\":\"TelMed (Compact One)\",\"source_url\":\"https://kvgmapper26.github.io/maps/map-AKL-ERW-OHN-UNF-FRA-300.html\"},{\"accident_cover\":\"included\",\"minimum_premium\":\"570.1\",\"insurer\":\"Atupri\",\"model\":\"HMO\",\"source_url\":\"https://kvgmapper26.github.io/maps/map-AKL-ERW-MIT-UNF-FRA-300.html\"}],\"official_reference\":\"https://www.priminfo.admin.ch/de/praemien\",\"message\":\"2026 only; not valid for 2027. Amounts are as shown on the source map.\"}",
       "tool_ok": true,
       "lang_ok": true
@@ -80,11 +80,11 @@
       "fallback": false,
       "route_attempts": 1,
       "tool_error": null,
-      "latency_s": 15.11,
+      "latency_s": 12.92,
       "notes": [
         "Zürich is municipality Zürich (BFS 261)"
       ],
-      "answer": "Die günstigste Krankenkassenprämie in Zürich für eine 24-jährige Person mit Franchise 2500 beträgt 225,9 CHF monatlich ohne Unfallversicherung (Assura-Basis SA, Qualimed). Diese Angabe stammt von [https://kvgmapper26.github.io/maps/map-AKL-JUG-OHN-UNF-FRA-2500.html](https://kvgmapper26.github.io/maps/map-AKL-JUG-OHN-UNF-FRA-2500.html). Die Daten gelten für das Jahr 2026 und sind nicht für 2027 gültig. Die offizielle Referenz finden Sie unter [https://www.priminfo.admin.ch/de/praemien](https://www.priminfo.admin.ch/de/praemien).",
+      "answer": "Die günstigste Krankenkassenprämie für eine 24-jährige Person mit Franchise 2500 CHF in Zürich beträgt 225,90 CHF monatlich ohne Unfallversicherung (Assura-Basis SA, Qualimed). Die Quelle ist [https://kvgmapper26.github.io/maps/map-AKL-JUG-OHN-UNF-FRA-2500.html](https://kvgmapper26.github.io/maps/map-AKL-JUG-OHN-UNF-FRA-2500.html). Die Angaben gelten ausschliesslich für das Jahr 2026.",
       "tool_result": "SUMMARY: Zürich, young_19_25, franchise 2500 CHF, 2026. Cheapest monthly premium WITHOUT accident cover: 225.9 CHF (Assura-Basis SA, Qualimed). Cheapest WITH accident cover: 242.9 CHF (Assura-Basis SA, Qualimed).\n{\"status\":\"answered\",\"year\":2026,\"municipality\":\"Zürich\",\"municipality_code\":261,\"age_group\":\"young_19_25\",\"franchise_chf\":2500,\"premiums\":[{\"accident_cover\":\"excluded\",\"minimum_premium\":\"225.9\",\"insurer\":\"Assura-Basis SA\",\"model\":\"Qualimed\",\"source_url\":\"https://kvgmapper26.github.io/maps/map-AKL-JUG-OHN-UNF-FRA-2500.html\"},{\"accident_cover\":\"included\",\"minimum_premium\":\"242.9\",\"insurer\":\"Assura-Basis SA\",\"model\":\"Qualimed\",\"source_url\":\"https://kvgmapper26.github.io/maps/map-AKL-JUG-MIT-UNF-FRA-2500.html\"}],\"official_reference\":\"https://www.priminfo.admin.ch/de/praemien\",\"message\":\"2026 only; not valid for 2027. Amounts are as shown on the source map.\"}",
       "tool_ok": true,
       "lang_ok": true
@@ -105,13 +105,13 @@
       "fallback": false,
       "route_attempts": 1,
       "tool_error": null,
-      "latency_s": 10.8,
+      "latency_s": 13.21,
       "notes": [
         "Lugano is municipality Lugano (BFS 5192)",
         "Assumed an adult aged 30 (adult rate from age 26)",
         "Assumed the 300 CHF franchise (deductible), the standard one; a higher franchise lowers the premium"
       ],
-      "answer": "Grüezi, per un adulto a Lugano nel 2026, senza copertura infortuni, la cassa malati più economica costa minimo 554,70 franchi svizzeri con Agrisano, modello AGRIsmart. Con copertura infortuni, il costo minimo sale a 583,90 franchi. I dati provengono dal sito ufficiale [Priminfo](https://www.priminfo.admin.ch/de/praemien). Attenzione, questi importi valgono solo per il 2026.",
+      "answer": "Grüezi, signore. Per il 2026, la cassa malati a Lugano per un adulto (dalla età di 26 anni) con franchigia di 300 CHF, il costo minimo senza copertura infortuni è di 554,70 CHF con Agrisano (modello AGRIsmart). Con copertura infortuni, sale a 583,90 CHF. I dati provengono dal sito ufficiale [Priminfo](https://www.priminfo.admin.ch/de/praemien). Ricordi che queste cifre valgono solo per il 2026 e non sono valide per il 2027.",
       "tool_result": "SUMMARY: Lugano, adult_26_plus, franchise 300 CHF, 2026. Cheapest monthly premium WITHOUT accident cover: 554.7 CHF (Agrisano, AGRIsmart). Cheapest WITH accident cover: 583.9 CHF (Agrisano, AGRIsmart).\n{\"status\":\"answered\",\"year\":2026,\"municipality\":\"Lugano\",\"municipality_code\":5192,\"age_group\":\"adult_26_plus\",\"franchise_chf\":300,\"premiums\":[{\"accident_cover\":\"excluded\",\"minimum_premium\":\"554.7\",\"insurer\":\"Agrisano\",\"model\":\"AGRIsmart\",\"source_url\":\"https://kvgmapper26.github.io/maps/map-AKL-ERW-OHN-UNF-FRA-300.html\"},{\"accident_cover\":\"included\",\"minimum_premium\":\"583.9\",\"insurer\":\"Agrisano\",\"model\":\"AGRIsmart\",\"source_url\":\"https://kvgmapper26.github.io/maps/map-AKL-ERW-MIT-UNF-FRA-300.html\"}],\"official_reference\":\"https://www.priminfo.admin.ch/de/praemien\",\"message\":\"2026 only; not valid for 2027. Amounts are as shown on the source map.\"}",
       "tool_ok": true,
       "lang_ok": true
@@ -131,10 +131,10 @@
       "fallback": false,
       "route_attempts": 1,
       "tool_error": null,
-      "latency_s": 19.87,
+      "latency_s": 12.53,
       "notes": [],
-      "answer": "Bonjour ! Tu as besoin d’un **permis de séjour** pour travailler en Suisse. Si tu viens d’Allemagne, tu es considéré comme un citoyen de l’UE ou de l’EFTA, et les règles de libre circulation s’appliquent.  \n\n1. **Vérifie ton motif de séjour** : travail, famille, ou études.  \n2. **Contacte l’autorité migratoire de ton canton** : ils évalueront ton cas et détermineront le type de permis.  \n3. **Prépare les documents requis** : passeport, contrat de travail, et d’autres selon ton cas.  \n\nPour plus d’informations, consulte le site officiel de la Confédération suisse sur le **mouvement libre des personnes** : [https://www.sem.admin.ch/sem/en/home/themen/fza_schweiz-eu-efta/eu-efta_buerger_schweiz.html](https://www.sem.admin.ch/sem/en/home/themen/fza_schweiz-eu-efta/eu-efta_buerger_schweiz.html).  \n\nN’hésite pas à demander de l’aide si tu as des questions !",
-      "tool_result": "{\"status\":\"answered\",\"group\":\"eu_efta\",\"topic\":\"residence\",\"source_excerpts\":[\"Are you planning to work in Switzerland, to join your spouse or family or to study at a Swiss university?\",\"The conditions applicable for residence in Switzerland are dependent on the reason for your stay.\",\"You can find further information on the Agreement on the Free Movement of Persons in the FAQs: FAQ – Free Movement of Persons\",\"You will find the documents relevant to your stay here: Factsheets\"],\"source_url\":\"https://www.sem.admin.ch/sem/en/home/themen/fza_schweiz-eu-efta/eu-efta_buerger_schweiz.html\",\"fetched_at_utc\":\"2026-10-13T08:12:17.534452+00:00\",\"note\":\"This describes an official SEM page, not a personal eligibility decision. Cantonal migration authorities issue residence permits. For UK nationals, pre-2021 acquired rights can differ from new arrivals.\"}",
+      "answer": "Si vous venez d'Allemagne pour travailler en Suisse, vous avez besoin d'un permis de séjour. Le type de permis dépend de la raison de votre séjour. Vous pouvez trouver plus d'informations sur le site officiel de la Suisse concernant le libre mouvement des personnes : [FAQ – Libre mouvement des personnes](https://www.sem.admin.ch/sem/en/home/themen/fza_schweiz-eu-efta/eu-efta_buerger_schweiz.html). \n\nPour obtenir un permis de séjour, vous devez contacter les autorités migratoires de votre canton. Ils détermineront le type de permis qui vous convient.",
+      "tool_result": "{\"status\":\"answered\",\"group\":\"eu_efta\",\"topic\":\"residence\",\"source_excerpts\":[\"Are you planning to work in Switzerland, to join your spouse or family or to study at a Swiss university?\",\"The conditions applicable for residence in Switzerland are dependent on the reason for your stay.\",\"You can find further information on the Agreement on the Free Movement of Persons in the FAQs: FAQ – Free Movement of Persons\",\"You will find the documents relevant to your stay here: Factsheets\"],\"source_url\":\"https://www.sem.admin.ch/sem/en/home/themen/fza_schweiz-eu-efta/eu-efta_buerger_schweiz.html\",\"fetched_at_utc\":\"2026-10-13T08:34:19.296195+00:00\",\"note\":\"This describes an official SEM page, not a personal eligibility decision. Cantonal migration authorities issue residence permits. For UK nationals, pre-2021 acquired rights can differ from new arrivals.\"}",
       "tool_ok": true,
       "lang_ok": true
     },
@@ -152,10 +152,10 @@
       "fallback": false,
       "route_attempts": 1,
       "tool_error": null,
-      "latency_s": 5.22,
+      "latency_s": 6.1,
       "notes": [],
-      "answer": "A federal popular initiative requires 100,000 valid signatures. (Volksinitiative) Source: https://www.bk.admin.ch/de/volksinitiativen.",
-      "tool_result": "{\"status\":\"answered\",\"topic\":\"initiative\",\"signatures_required\":100000,\"collection_period_months\":18,\"source_excerpt_de\":\"Die Bundeskanzlei begleitet das Initiativkomitee in der ersten Phase seiner Initiative. Sie nimmt eine Vorprüfung des Titels und der Liste der Unterschriften der Komiteemitglieder vor. Die gesammelten Unterschriften werden, nachdem die Gemeinden sie kontrolliert haben, bei der Bundeskanzlei eingereicht; diese zählt die Unterschriften. Sind innerhalb von 18 Monaten 100 000 gültige Unterschriften zusammengekommen, so erklärt die Bundeskanzlei, dass die Volksinitiative zustande gekommen ist.\",\"source_language\":\"de\",\"source_url\":\"https://www.bk.admin.ch/de/volksinitiativen\",\"fetched_at_utc\":\"2026-10-13T08:12:37.048750+00:00\",\"scope\":\"Federal level only; Council of States and cantonal/municipal elections follow cantonal rules.\"}",
+      "answer": "A federal popular initiative requires 100,000 valid signatures. (Volksinitiative) Source: [https://www.bk.admin.ch/de/volksinitiativen](https://www.bk.admin.ch/de/volksinitiativen).",
+      "tool_result": "{\"status\":\"answered\",\"topic\":\"initiative\",\"signatures_required\":100000,\"collection_period_months\":18,\"source_excerpt_de\":\"Die Bundeskanzlei begleitet das Initiativkomitee in der ersten Phase seiner Initiative. Sie nimmt eine Vorprüfung des Titels und der Liste der Unterschriften der Komiteemitglieder vor. Die gesammelten Unterschriften werden, nachdem die Gemeinden sie kontrolliert haben, bei der Bundeskanzlei eingereicht; diese zählt die Unterschriften. Sind innerhalb von 18 Monaten 100 000 gültige Unterschriften zusammengekommen, so erklärt die Bundeskanzlei, dass die Volksinitiative zustande gekommen ist.\",\"source_language\":\"de\",\"source_url\":\"https://www.bk.admin.ch/de/volksinitiativen\",\"fetched_at_utc\":\"2026-10-13T08:34:31.275045+00:00\",\"scope\":\"Federal level only; Council of States and cantonal/municipal elections follow cantonal rules.\"}",
       "tool_ok": true,
       "lang_ok": true
     },
@@ -173,10 +173,10 @@
       "fallback": false,
       "route_attempts": 1,
       "tool_error": null,
-      "latency_s": 8.86,
+      "latency_s": 8.02,
       "notes": [],
-      "answer": "La franchigia per il voto alle elezioni del Consiglio nazionale è garantita a tutti i cittadini svizzeri che hanno compiuto 18 anni (Altersgrenze) (Età federale per il voto). Questa regola è contenuta nel testo ufficiale disponibile all'indirizzo [https://www.bk.admin.ch/de/nationalratswahlen](https://www.bk.admin.ch/de/nationalratswahlen).",
-      "tool_result": "{\"status\":\"answered\",\"topic\":\"national_council\",\"federal_voting_age\":18,\"council_of_states_rules\":\"cantonal\",\"source_excerpt_de\":\"Die Schweizerbürgerinnen und -bürger können, sobald sie das 18. Altersjahr vollendet haben, an den Nationalratswahlen teilnehmen. Wer wählen darf, kann auch gewählt werden. Die Ständeratswahlen sind hingegen nicht vom Bundesrecht geregelt; sie richten sich nach dem Recht der Kantone.\",\"source_language\":\"de\",\"source_url\":\"https://www.bk.admin.ch/de/nationalratswahlen\",\"fetched_at_utc\":\"2026-10-13T08:12:42.004048+00:00\",\"scope\":\"Federal level only; Council of States and cantonal/municipal elections follow cantonal rules.\"}",
+      "answer": "La cittadinanza svizzera può votare alle elezioni del Consiglio nazionale a partire dall'età di 18 anni (Altersgrenze). Questa regola è stabilita nel testo della fonte (https://www.bk.admin.ch/de/nationalratswahlen). Le elezioni del Consiglio dei Cantoni seguono invece le norme cantonali.",
+      "tool_result": "{\"status\":\"answered\",\"topic\":\"national_council\",\"federal_voting_age\":18,\"council_of_states_rules\":\"cantonal\",\"source_excerpt_de\":\"Die Schweizerbürgerinnen und -bürger können, sobald sie das 18. Altersjahr vollendet haben, an den Nationalratswahlen teilnehmen. Wer wählen darf, kann auch gewählt werden. Die Ständeratswahlen sind hingegen nicht vom Bundesrecht geregelt; sie richten sich nach dem Recht der Kantone.\",\"source_language\":\"de\",\"source_url\":\"https://www.bk.admin.ch/de/nationalratswahlen\",\"fetched_at_utc\":\"2026-10-13T08:34:37.413913+00:00\",\"scope\":\"Federal level only; Council of States and cantonal/municipal elections follow cantonal rules.\"}",
       "tool_ok": true,
       "lang_ok": true
     },
@@ -194,10 +194,10 @@
       "fallback": false,
       "route_attempts": 1,
       "tool_error": null,
-      "latency_s": 10.05,
+      "latency_s": 13.92,
       "notes": [],
-      "answer": "Die Mehrwertsteuer beträgt 8,1 % der Bewertungsgrundlage. Auf ein Paket im Wert von 200 Franken aus dem Ausland entfällt somit eine geschätzte Mehrwertsteuer von 16,20 Franken. (Artikel 25 des Mehrwertsteuergesetzes)  \nQuelle: [https://www.bazg.admin.ch/en/receipt-of-letters-and-parcels](https://www.bazg.admin.ch/en/receipt-of-letters-and-parcels)",
-      "tool_result": "{\"status\":\"answered\",\"vat_rate\":\"standard\",\"rate_percent\":8.1,\"assessment_basis_chf\":200.0,\"estimated_vat_chf\":16.2,\"customs_duty_included\":false,\"collection_guidance\":\"Customs duty not supplied: VAT assessment and collection may change when duty is added.\",\"carrier_clearance_fee_chf\":null,\"source_evidence\":[\"Value added tax amounts to 8,1 % of the assessment basis. A reduced rate of 2.6 % applies for certain goods (e.g. foodstuff, books, magazines and medications). Details can be found in Article 25 of the VAT Act .\",\"Tax amounts of up to 5 Swiss francs are not levied. This tax amount corresponds to the assessment basis of CHF 62 at the 8,1 % VAT rate or CHF 193 at the 2.6% VAT rate.\",\"All costs up to the destination in Switzerland (e.g. postal forwarding service) as well as import duties (e.g. customs duties) are added to the assessment basis.\"],\"source_url\":\"https://www.bazg.admin.ch/en/receipt-of-letters-and-parcels\",\"fetched_at_utc\":\"2026-10-13T08:12:51.302539+00:00\",\"note\":\"For postal/courier purchases only. Goods value excludes separately shown foreign VAT; shipping to Switzerland and any import duty are part of the VAT basis. Customs duties, other taxes and carrier fees depend on the goods and carrier and are not computed here.\"}",
+      "answer": "Auf ein Paket im Wert von 200 Franken aus dem Ausland wird die Mehrwertsteuer (MwSt.) im Standardumfang von 8,1 % berechnet, was einer Schätzung von 16,20 Franken entspricht. Die Steuerberechnung basiert auf dem Warenwert von 200 Franken, wobei zusätzliche Kosten wie Zollgebühren und Versandkosten in die Steuerbasis einbezogen werden. Die Regelung ist im Artikel 25 des Mehrwertsteuergesetzes (MwStG) festgelegt. (Quelle: [https://www.bazg.admin.ch/en/receipt-of-letters-and-parcels](https://www.bazg.admin.ch/en/receipt-of-letters-and-parcels))",
+      "tool_result": "{\"status\":\"answered\",\"vat_rate\":\"standard\",\"rate_percent\":8.1,\"assessment_basis_chf\":200.0,\"estimated_vat_chf\":16.2,\"customs_duty_included\":false,\"collection_guidance\":\"Customs duty not supplied: VAT assessment and collection may change when duty is added.\",\"carrier_clearance_fee_chf\":null,\"source_evidence\":[\"Value added tax amounts to 8,1 % of the assessment basis. A reduced rate of 2.6 % applies for certain goods (e.g. foodstuff, books, magazines and medications). Details can be found in Article 25 of the VAT Act .\",\"Tax amounts of up to 5 Swiss francs are not levied. This tax amount corresponds to the assessment basis of CHF 62 at the 8,1 % VAT rate or CHF 193 at the 2.6% VAT rate.\",\"All costs up to the destination in Switzerland (e.g. postal forwarding service) as well as import duties (e.g. customs duties) are added to the assessment basis.\"],\"source_url\":\"https://www.bazg.admin.ch/en/receipt-of-letters-and-parcels\",\"fetched_at_utc\":\"2026-10-13T08:34:45.715113+00:00\",\"note\":\"For postal/courier purchases only. Goods value excludes separately shown foreign VAT; shipping to Switzerland and any import duty are part of the VAT basis. Customs duties, other taxes and carrier fees depend on the goods and carrier and are not computed here.\"}",
       "tool_ok": true,
       "lang_ok": true
     },
@@ -213,12 +213,12 @@
       "fallback": false,
       "route_attempts": 1,
       "tool_error": null,
-      "latency_s": 10.56,
+      "latency_s": 11.4,
       "notes": [
-        "Dropped as_of '2023-10-10': no date in the question",
+        "Dropped as_of '2023-10-05': no date in the question",
         "Dropped language 'en' (allowed: it, de, fr, rm)"
       ],
-      "answer": "Grüezi. The current reference interest rate for rent adjustments is 1.25%, as stated in the official publication from the Federal Office of Housing (UFAB) on September 1, 2026. This rate applies from September 2, 2026, and has remained unchanged since September 2, 2025. You can find the full details here: [Comunicato stampa del 1 settembre 2026](https://www.bwo.admin.ch/it/newnsb/Ozmbl-Ca5Ee4).",
+      "answer": "Grüezi! The current reference interest rate for rents is 1.25%, as stated in the official publication from the Federal Office of Housing (UFAB) on September 1, 2026. This rate applies from September 2, 2026, and has remained unchanged since September 2, 2025. You can find the full details here: [Tasso ipotecario di riferimento: pubblicazione del 1 settembre 2026](https://www.bwo.admin.ch/it/newnsb/Ozmbl-Ca5Ee4).",
       "tool_result": "{\"status\":\"answered\",\"as_of\":\"2026-10-13\",\"reference_rate_percent\":\"1.25\",\"reference_rate_bp\":125,\"average_rate_percent\":\"1.31\",\"average_rate_bp\":131,\"average_rate_as_of\":\"2026-06-30\",\"effective_from\":\"2026-09-02\",\"published_on\":\"2026-09-01\",\"value_unchanged_since\":\"2025-09-02\",\"next_publication_on\":\"2026-12-01\",\"coverage\":{\"from\":\"2026-09-02\",\"publications\":1},\"evidence\":{\"item_key\":\"reference_rate:2026-09-01\",\"title\":\"Tasso ipotecario di riferimento: pubblicazione del 1 settembre 2026\",\"summary\":\"Il tasso di riferimento resta all'1,25 % e si applica dal 2 settembre 2026; tasso medio 1,31 % al 30 giugno 2026. Valore invariato dal 2 settembre 2025. Prossimo comunicato previsto il 1 dicembre 2026.\",\"data\":{\"average_rate_as_of\":\"2026-06-30\",\"average_rate_bp\":131,\"next_publication_on\":\"2026-12-01\",\"official_publication_frequency\":\"quarterly\",\"reference_rate_bp\":125,\"value_unchanged_since\":\"2025-09-02\"},\"conditions\":{\"history\":\"Il record attesta solo questa pubblicazione e value_unchanged_since; non costituisce uno storico trimestrale completo.\",\"not_a_forecast\":\"next_publication_on è una data annunciata, non un valore previsto.\",\"scope\":\"Tasso nazionale unico per gli adeguamenti delle pigioni; nessun contesto cantonale richiesto.\"},\"publisher\":\"BWO/UFAB\",\"publisher_level\":\"federal\",\"jurisdiction_level\":\"federal\",\"jurisdiction_code\":\"CH\",\"effective_from\":\"2026-09-02\",\"applicability_verified\":true,\"source\":{\"url\":\"https://www.bwo.admin.ch/it/newnsb/Ozmbl-Ca5Ee4\",\"locator\":\"Comunic",
       "tool_ok": true,
       "lang_ok": true
@@ -237,9 +237,9 @@
       "fallback": false,
       "route_attempts": 1,
       "tool_error": null,
-      "latency_s": 7.11,
+      "latency_s": 6.07,
       "notes": [],
-      "answer": "Grüezi, les vacances d'automne dans le canton de Vaud commencent le 10 octobre 2026 et se terminent le 25 octobre 2026. C’est le calendrier officiel du canton, comme indiqué sur le site OpenHolidays.",
+      "answer": "Grüezi, les vacances d'automne dans le canton de Vaud sont du 10 octobre au 25 octobre 2026. C’est écrit clair sur le site d’OpenHolidays.",
       "tool_result": "School holidays for VD (2026/27)\n- 27 Jun 2026 – 16 Aug 2026: Summer (canton scope)\n- 10 Oct 2026 – 25 Oct 2026: Autumn (canton scope)\n- 24 Dec 2026 – 10 Jan 2027: Christmas (canton scope)\nRequested scope: canton VD (CH-VD)\nSource: OpenHolidays (CC BY 4.0) — https://openholidaysapi.org/SchoolHolidays?countryIsoCode=CH&subdivisionCode=CH-VD&validFrom=2026-08-01&validTo=2027-07-31",
       "tool_ok": true,
       "lang_ok": true
@@ -259,11 +259,11 @@
       "fallback": false,
       "route_attempts": 1,
       "tool_error": null,
-      "latency_s": 17.83,
+      "latency_s": 21.33,
       "notes": [
         "Corrected fact_type 'fees' to 'fee'"
       ],
-      "answer": "To exchange your US driving licence in Zurich, you need to apply at the Strassenverkehrsamt (Road Traffic Office) in Zurich. You may need to take a control drive, depending on your licence category. Fees vary based on your category:\n\n1. For categories D: CHF 268  \n2. For categories C, C1, CE, D1: CHF 201  \n3. For categories A, A1, B, B1, F, BE, DE, C1E, D1E, BPT: CHF 134  \n\nCheck the official document for full details: [Zurich Fees PDF](https://www.zh.ch/content/dam/zhweb/bilder-dokumente/organisation/sicherheitsdirektion/strassenverkehrsamt/organisation/ueber-uns-grundlagen/Geb%C3%BChrenverf%C3%BCgung%2C%20g%C3%BCltig%20ab%201.%20Januar%202026.pdf).  \n\nNext, visit the Strassenverkehrsamt in Zurich to start your application.",
+      "answer": "Yes, you can exchange your US driving licence in Zurich, but it depends on your licence category and whether you need to complete a control drive. Here’s what you need to know:\n\n1. If your licence is for categories **D** (e.g., heavy trucks), you’ll need to pay CHF 268 for a control drive.  \n2. If your licence is for categories **C, C1, CE, D1**, the fee is CHF 201 for a control drive.  \n3. For categories **A, A1, B, B1, F, BE, DE, C1E, D1E, BPT**, the fee is CHF 134 for a control drive.  \n\nThese fees are set by the **Strassenverkehrsamt Kanton Zürich** (Zurich Road Traffic Office).  \n\nNext, you should visit the [Zurich Road Traffic Office website](https://www.zh.ch/content/dam/zhweb/bilder-dokumente/organisation/sicherheitsdirektion/strassenverkehrsamt/organisation/ueber-uns-grundlagen/Geb%C3%BChrenverf%C3%BCgung%2C%20g%C3%BCltig%20ab%201.%20Januar%202026.pdf) to check the full process and any additional requirements.",
       "tool_result": "{\"status\":\"answered\",\"jurisdiction\":\"ZH\",\"fact_type\":\"fee\",\"facts\":[{\"rule_jurisdiction\":\"ZH\",\"fact_key\":\"control_drive_d\",\"fact_type\":\"fee\",\"description_en\":\"Control drive, if required, for categories D: CHF 268.\",\"authority\":\"Strassenverkehrsamt Kanton Zürich\",\"authority_level\":\"canton\",\"source_status\":\"binding\",\"source_url\":\"https://www.zh.ch/content/dam/zhweb/bilder-dokumente/organisation/sicherheitsdirektion/strassenverkehrsamt/organisation/ueber-uns-grundlagen/Geb%C3%BChrenverf%C3%BCgung%2C%20g%C3%BCltig%20ab%201.%20Januar%202026.pdf\",\"validated_at\":\"2026-09-24\",\"conditions\":[{\"field\":\"category\",\"operator\":\"eq\",\"value\":\"D\"},{\"field\":\"control_drive\",\"operator\":\"eq\",\"value\":\"true\"}],\"fee_code\":\"control_drive\",\"fee_model\":\"component\",\"amount_min_chf\":\"268.00\",\"amount_max_chf\":\"268.00\"},{\"rule_jurisdiction\":\"ZH\",\"fact_key\":\"control_drive_heavy\",\"fact_type\":\"fee\",\"description_en\":\"Control drive, if required, for categories C, C1, CE, D1: CHF 201.\",\"authority\":\"Strassenverkehrsamt Kanton Zürich\",\"authority_level\":\"canton\",\"source_status\":\"binding\",\"source_url\":\"https://www.zh.ch/content/dam/zhweb/bilder-dokumente/organisation/sicherheitsdirektion/strassenverkehrsamt/organisation/ueber-uns-grundlagen/Geb%C3%BChrenverf%C3%BCgung%2C%20g%C3%BCltig%20ab%201.%20Januar%202026.pdf\",\"validated_at\":\"2026-09-24\",\"conditions\":[{\"field\":\"category\",\"operator\":\"eq\",\"value\":\"C\"},{\"field\":\"category\",\"operator\":\"eq\",\"value\":\"C1\"},{\"field\":\"category\",\"operator\":\"eq\",\"value\":\"CE\"},{\"field\":\"cate",
       "tool_ok": true,
       "lang_ok": true
@@ -275,18 +275,19 @@
       "expected_lang": "de",
       "tool": "search_knowledge",
       "arguments": {
-        "query": "Kehrichtabfuhr Bern Karton",
-        "limit": 5
+        "query": "Wann ist in Bern die Kehrichtabfuhr und wie entsorge ich Karton?"
       },
       "routed_lang": "de",
       "answer_lang": "de",
       "fallback": false,
       "route_attempts": 1,
-      "tool_error": null,
-      "latency_s": 9.74,
-      "notes": [],
-      "answer": "Die Kehrichtabfuhr in Bern ist leider nicht direkt im Internetportal der Stadt Bern zu finden. Sie sollten sich an die Stadt Bern selbst wenden, um die genaue Abfuhrzeit für Ihren Wohnort zu erfahren. Kartons gehören übrigens zur **Restmüll**-Fraktion und werden daher mit dem Restmüll abgeholt. Für weitere Details empfehle ich Ihnen, direkt auf der Website der Stadt Bern nachzuschauen oder sich telefonisch an die zuständige Abteilung zu wenden.",
-      "tool_result": "{\"method\":\"keyword_fallback\",\"results\":[{\"level\":\"municipal\",\"source\":\"bern_arrival\",\"authority\":\"City of Bern\",\"url\":\"https://www.bern.ch/themen/zuzug-umzug-wegzug/\",\"crawled_at\":\"2026-09-24T15:09:58.487468+00:00\",\"passage\":\"fig gesucht\\nUmzugsmeldung ewb\\nWillkommen in der Stadt Bern\\nWillkommen im Kanton Bern\\nWillkommen in der Schweiz\\nWohnsitzbescheinigung\\nFusszeile\\nTHEMEN\\nPOLITIK UND VERWALTUNG\\nZU GAST IN BERN\\nWIRTSCHAFT\\nSTADTPLAN\\nSTELLEN\\nBLUESKY\\nFACEBOOK\\nINSTAGRAM\\nLINKEDIN\\nTHREEMA\\nX\\nYOUTUBE\\nIMPRESSUM\\nRECHTLICHE HINWEISE\\nDATENSCHUTZ\\nGEBÄRDENSPRACHE\\nLEICHTE SPRACHE\\nSTADT BERN\\nTELEFONZENTRALE +41 31 321 61 11\\nINFO@BERN.CH\\nMEDIENCENTER\\nNOTFÄLLE\\nINFOS FÜR MITARBEITENDE:\\nANMELDUNG IM SELF SERVICE PORTAL\\nDIREKTZUGRIFF INTRANET\",\"refresh_failed_at\":null},{\"level\":\"municipal\",\"source\":\"bern_arrival\",\"authority\":\"City of Bern\",\"url\":\"https://www.bern.ch/themen/zuzug-umzug-wegzug/\",\"crawled_at\":\"2026-09-24T15:09:58.487468+00:00\",\"passage\":\"Umständen kann eine Kopie Ihres Mietvertrags oder ein entsprechender Nachweis erforderlich sein. Falls nötig, teilen wir Ihnen dies mit.\\nAnmeldung Wochenaufenthalt L, B, C (Webformular)\\nVerlängerung Wochenaufenthalt L, B, C (Webformular)\\nNach der Anmeldung erhalten Sie eine Bestätigung per Post zugestellt.\\nWeitere Dienstleistungen:\\nFolgende Formulare können Sie auf dem Postweg oder per E-Mail an\\neinwohnerdienste@bern.ch\\neinsenden.\\nAbmeldung (PDF, 68.3 KB)\\nAdressänderung (PDF, 59.0 KB)\\nWohnsitzbestätigung\\nAl",
+      "tool_error": "No saved official page matches the topic of the question",
+      "latency_s": 5.54,
+      "notes": [
+        "The router chose no tool for a question; searched saved pages instead"
+      ],
+      "answer": "Grüezi, die Kehrichtabfuhr und die Kartonsortierung sind in Bern leider nicht im offiziellen Datenbestand zu finden. Bitte fragen Sie einfach bei der Gemeinde oder auf deren Website nach, wo Sie die aktuellen Abholtermine und Sortierregeln erhalten können.",
+      "tool_result": "ERROR: the lookup returned no answer (No saved official page matches the topic of the question). Do not answer from memory.",
       "tool_ok": true,
       "lang_ok": true
     }

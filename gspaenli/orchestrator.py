@@ -11,20 +11,26 @@ from typing import Any, Protocol
 from .llm import ChatModel
 from .mcp_client import ToolInfo, ToolResult
 from .personas import Persona
-from .prompts import build_answer_messages
+from .prompts import build_answer_messages, build_no_data_messages
 from .resolver import (
     PREMIUM_TOOL,
+    SEARCH_TOOLS,
     drop_named_optional,
     repair_choice,
     reroute_invented_coordinates,
     resolve,
     result_problem,
     router_tools,
+    search_is_relevant,
+    topic_words,
     summarize_premiums,
 )
 from .router import route
 
 ANSWER_MAX_TOKENS = 500
+NO_DATA_MAX_TOKENS = 150  # short on purpose: less room to improvise
+# A message with this many topic words is a question, not small talk.
+QUESTION_TOPIC_WORDS = 3
 ANSWER_TEMPERATURE = 0.7
 # Small models sometimes cite the prompt's own label, e.g. "Source: ... (TOOL RESULT)".
 PROMPT_LEAK = re.compile(r"\s*\(?\bTOOL RESULT\b\)?", flags=re.I)
@@ -85,6 +91,12 @@ class Orchestrator:
         trace.route_attempts, trace.fallback = chosen.attempts, chosen.fallback
 
         tool_text = ""
+        if chosen.tool is None and len(topic_words(question, self.mcp_dir)) >= QUESTION_TOPIC_WORDS:
+            # Qwen answered a real question with no tool and improvised a URL. Search instead, so
+            # the relevance check decides between a grounded answer and an honest "not found".
+            chosen.tool, chosen.arguments = "search_knowledge", {"query": question}
+            trace.tool = chosen.tool
+            trace.notes.append("The router chose no tool for a question; searched saved pages instead")
         if chosen.tool and (rerouted := reroute_invented_coordinates(chosen.tool, chosen.arguments, question)):
             chosen.tool, chosen.arguments, note = rerouted
             trace.tool = chosen.tool
@@ -95,10 +107,15 @@ class Orchestrator:
             trace.latency_s["tool"] = round(time.perf_counter() - t, 2)
 
         t = time.perf_counter()
-        messages = build_answer_messages(
-            question, persona, trace.lang, trace.tool, trace.arguments, tool_text, trace.notes, history
-        )
-        text = await self.llm.chat(messages, max_tokens=ANSWER_MAX_TOKENS, temperature=ANSWER_TEMPERATURE)
+        if trace.tool and trace.tool_error:
+            messages = build_no_data_messages(question, persona, trace.lang)
+            max_tokens = NO_DATA_MAX_TOKENS
+        else:
+            messages = build_answer_messages(
+                question, persona, trace.lang, trace.tool, trace.arguments, tool_text, trace.notes, history
+            )
+            max_tokens = ANSWER_MAX_TOKENS
+        text = await self.llm.chat(messages, max_tokens=max_tokens, temperature=ANSWER_TEMPERATURE)
         text = PROMPT_LEAK.sub("", text).strip()
         trace.latency_s["answer"] = round(time.perf_counter() - t, 2)
         trace.latency_s["total"] = round(time.perf_counter() - started, 2)
@@ -129,6 +146,11 @@ class Orchestrator:
             trace.tool_error = f"{type(err).__name__}: {err}"
             return f"ERROR: the tool call failed ({trace.tool_error})"
         trace.sources, trace.truncated = result.sources, result.truncated
+        if not problem and name in SEARCH_TOOLS and not search_is_relevant(
+            question, trace.arguments, result.text, self.mcp_dir
+        ):
+            problem = "No saved official page matches the topic of the question"
+            trace.sources = []  # the pages found are about something else
         if problem:
             trace.tool_error = problem[:300]
             return f"ERROR: the lookup returned no answer ({trace.tool_error}). Do not answer from memory."
