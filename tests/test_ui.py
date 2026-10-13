@@ -98,3 +98,17 @@ def test_model_state_never_needs_the_network(monkeypatch):
     assert rt.model_state() == "asleep"
     rt.waking = True
     assert rt.model_state() == "waking"
+
+
+def test_ready_pill_carries_its_expiry_for_the_browser():
+    from gspaenli.ui_assets import status_html, tour_head
+
+    assert 'data-ready-until="1700000000000"' in status_html("ready", 1_700_000_000_000)
+    assert "data-ready-until" not in status_html("asleep", 1_700_000_000_000)
+    assert "readyUntil" in tour_head()
+
+
+def test_ui_has_no_server_timer():
+    from pathlib import Path
+
+    assert "gr.Timer" not in Path("gspaenli/ui.py").read_text(encoding="utf-8")

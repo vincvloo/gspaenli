@@ -135,7 +135,8 @@ def build_demo(runtime: Runtime) -> gr.Blocks:
     first = next(iter(personas.values()))
 
     def status() -> str:
-        return status_html(runtime.model_state())
+        ready_until_ms = int((runtime.last_ok + READY_WINDOW_S) * 1000)
+        return status_html(runtime.model_state(), ready_until_ms)
 
     async def respond(message: str, persona_id: str, chat: list, history: list, session: dict):
         message = (message or "").strip()[:MAX_QUESTION_CHARS]
@@ -237,9 +238,9 @@ def build_demo(runtime: Runtime) -> gr.Blocks:
         persona.change(switch_persona, persona, [chatbot, *example_buttons, history])
         new_chat.click(lambda: ([], []), None, [chatbot, history])
         tour.click(None, js="() => window.gspaenliTour && window.gspaenliTour()")
-        # Cheap refresh of the pill from in-memory state; no network call.
+        # Pill state on page load and after each turn. No server timer: an open tab would keep
+        # the app container awake. The browser expires "ready" by itself (tour_head).
         demo.load(status, None, status_pill)
-        gr.Timer(60).tick(status, None, status_pill)
     return demo
 
 

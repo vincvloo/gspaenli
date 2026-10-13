@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gspänli</title>
+<meta name="description" content="Swiss answers, your choice of personality. Ask in English, French, German or Italian, grounded in official Swiss sources.">
+<meta property="og:title" content="Gspänli">
+<meta property="og:description" content="Swiss answers, your choice of personality. Ask in your language, grounded in official sources in theirs.">
+<meta property="og:image" content="https://vincvloo.github.io/gspaenli/assets/chat.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M8 4h24a6 6 0 0 1 6 6v16a6 6 0 0 1-6 6H18l-8 6v-6H8a6 6 0 0 1-6-6V10a6 6 0 0 1 6-6z' fill='%23DA291C'/%3E%3Cpath d='M17 10h6v5h5v6h-5v5h-6v-5h-5v-6h5z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #f6f7f9;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #5b6475;
+    --line: #e3e6ec;
+    --red: #DA291C;
+    --red-dark: #b71f15;
+    --red-soft: #fdecea;
+    --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b0f17;
+      --bg-soft: #111723;
+      --card: #141b29;
+      --text: #e8ecf3;
+      --muted: #9aa4b5;
+      --line: #252e3f;
+      --red-soft: #2a1414;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b0f17; --bg-soft: #111723; --card: #141b29; --text: #e8ecf3; --muted: #9aa4b5;
+    --line: #252e3f; --red-soft: #2a1414; --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 Inter, system-ui, -apple-system, sans-serif; }
+  a { color: inherit; }
+  img { max-width: 100%; display: block; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+
+  nav { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; text-decoration: none; }
+  .brand svg { width: 30px; height: 30px; }
+  .nav-links { display: flex; align-items: center; gap: 20px; }
+  .nav-links a { text-decoration: none; color: var(--muted); font-weight: 600; font-size: 0.92rem; }
+  .nav-links a:hover { color: var(--red); }
+
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 12px; font-weight: 700;
+    text-decoration: none; border: 1px solid transparent; transition: transform .15s, background .15s; cursor: pointer; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: var(--red); color: #fff !important; }
+  .btn-primary:hover { background: var(--red-dark); }
+  .btn-ghost { border-color: var(--line); color: var(--text); background: var(--card); }
+  .btn-sm { padding: 8px 14px; font-size: 0.9rem; }
+
+  .hero { padding: 64px 0 40px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
+  .eyebrow { display: inline-block; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--red); background: var(--red-soft); padding: 4px 10px; border-radius: 999px; }
+  h1 { font-size: clamp(2.1rem, 5vw, 3.3rem); line-height: 1.08; letter-spacing: -0.03em; margin: 16px 0; font-weight: 800; }
+  .lead { font-size: 1.15rem; color: var(--muted); margin: 0 0 28px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; }
+  .note { font-size: 0.85rem; color: var(--muted); margin-top: 14px; }
+  .frame { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow); background: var(--card); }
+  .frame-bar { display: flex; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .frame-bar span { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+
+  section { padding: 56px 0; }
+  section.soft { background: var(--bg-soft); }
+  h2 { font-size: clamp(1.6rem, 3.5vw, 2.2rem); letter-spacing: -0.02em; margin: 0 0 12px; font-weight: 800; }
+  .sub { color: var(--muted); max-width: 640px; margin: 0 0 32px; }
+
+  .langs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .lang { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .lang b { display: inline-block; font-size: 0.75rem; letter-spacing: 0.06em; color: var(--red); margin-bottom: 6px; }
+  .lang p { margin: 0; font-weight: 500; }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+  .card .emoji { font-size: 2rem; }
+  .card h3 { margin: 8px 0 4px; font-size: 1.15rem; }
+  .card .tag { color: var(--muted); margin: 0 0 12px; }
+  .card ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 0.92rem; }
+
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; counter-reset: step; }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px; position: relative; }
+  .step::before { counter-increment: step; content: counter(step); display: inline-grid; place-items: center; width: 32px; height: 32px;
+    border-radius: 50%; background: var(--red); color: #fff; font-weight: 800; margin-bottom: 10px; }
+  .step h3 { margin: 0 0 6px; font-size: 1.1rem; }
+  .step p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+  .chip { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 12px; font-size: 0.85rem;
+    font-weight: 600; color: var(--muted); }
+
+  .split { display: grid; grid-template-columns: 1fr 340px; gap: 48px; align-items: center; }
+  .split ul { color: var(--muted); padding-left: 18px; }
+  .split li { margin-bottom: 6px; }
+  .hero > *, .split > * { min-width: 0; }
+  .phone { border-radius: 28px; overflow: hidden; border: 8px solid #1e2533; box-shadow: var(--shadow); max-height: 640px; width: 100%; max-width: 340px; justify-self: center; }
+
+  .why { max-width: 760px; }
+  .why p { color: var(--muted); font-size: 1.05rem; }
+
+  .final { text-align: center; }
+  .final .cta { justify-content: center; }
+  footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--muted); font-size: 0.88rem; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+
+  @media (max-width: 860px) {
+    .hero, .split { grid-template-columns: 1fr; gap: 32px; }
+    .hero { padding-top: 40px; }
+    .langs { grid-template-columns: repeat(2, 1fr); }
+    .cards, .steps { grid-template-columns: 1fr; }
+    .phone { max-width: 340px; margin: 0 auto; }
+  }
+  @media (max-width: 520px) {
+    .nav-links a:not(.btn) { display: none; }
+    .langs { grid-template-columns: 1fr; }
+    .btn { width: 100%; justify-content: center; }
+    .nav-links .btn { width: auto; }
+  }
+</style>
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 4h24a6 6 0 0 1 6 6v16a6 6 0 0 1-6 6H18l-8 6v-6H8a6 6 0 0 1-6-6V10a6 6 0 0 1 6-6z" fill="#DA291C"/><path d="M17 10h6v5h5v6h-5v5h-6v-5h-5v-6h5z" fill="#fff"/></svg>
+      Gspänli
+    </a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="https://github.com/vincvloo/gspaenli">GitHub</a>
+      <a class="btn btn-primary btn-sm try" href="https://vvanloo1--gspaenli-ui.us-east.modal.run" target="_blank" rel="noopener">Try it</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="wrap hero">
+    <div>
+      <span class="eyebrow">Proof of concept</span>
+      <h1>Swiss answers, your choice of personality.</h1>
+      <p class="lead">Ask about life in Switzerland in English, French, German or Italian. Every answer comes from one lookup in official Swiss data, written by Apertus, the Swiss open model, and shows its source.</p>
+      <div class="cta">
+        <a class="btn btn-primary try" href="https://vvanloo1--gspaenli-ui.us-east.modal.run" target="_blank" rel="noopener">Try the live demo</a>
+        <a class="btn btn-ghost" href="https://github.com/vincvloo/gspaenli">View the code</a>
+      </div>
+      <p class="note">The model sleeps when nobody uses it. Clicking wakes it up; the first answer takes about 2 minutes, the next ones a few seconds.</p>
+    </div>
+    <div class="frame">
+      <div class="frame-bar"><span></span><span></span><span></span></div>
+      <img src="assets/chat.png" alt="Gspänli answering the minimum health insurance premium in Lausanne, with the How I answered panel showing tool, arguments, assumptions and sources" width="1280" height="1100">
+    </div>
+  </div>
+
+  <section class="soft">
+    <div class="wrap">
+      <h2>Ask in your language, grounded in official sources in theirs.</h2>
+      <p class="sub">Swiss sources come in German, French and Italian. You ask in any of the four languages and get the answer in yours.</p>
+      <div class="langs">
+        <div class="lang"><b>EN</b><p>What is the minimum health insurance premium in Lausanne for an adult?</p></div>
+        <div class="lang"><b>FR</b><p>Quand sont les vacances scolaires d'automne dans le canton de Vaud ?</p></div>
+        <div class="lang"><b>DE</b><p>Wie viel Mehrwertsteuer zahle ich auf ein Paket im Wert von 200 Franken?</p></div>
+        <div class="lang"><b>IT</b><p>Chi può votare alle elezioni del Consiglio nazionale?</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2>Same facts, three voices.</h2>
+      <p class="sub">A personality is one YAML file: a prompt, its favourite tools and three example questions. Adding a file adds a personality.</p>
+      <div class="cards">
+        <div class="card"><div class="emoji">🧭</div><h3>Newcomer guide</h3><p class="tag">Just arrived? I'll walk you through it, step by step.</p>
+          <ul><li>Residence permits</li><li>Health insurance premiums</li><li>Housing and driving licence</li></ul></div>
+        <div class="card"><div class="emoji">📜</div><h3>Fedlex clerk</h3><p class="tag">Precise. Sourced. Brief. No speculation.</p>
+          <ul><li>Federal political rights</li><li>Parcel import VAT</li><li>Saved official pages</li></ul></div>
+        <div class="card"><div class="emoji">🧹</div><h3>Bünzli neighbour</h3><p class="tag">Rules are rules. But I'll help you. This time.</p>
+          <ul><li>Rent reference rate</li><li>Waste and housing rules</li><li>Weather and school holidays</li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="soft" id="how">
+    <div class="wrap">
+      <h2>How it works</h2>
+      <p class="sub">Two calls to an open model and one call to a Swiss data server, for every question. No native tool calling needed, so any open model can do it.</p>
+      <div class="steps">
+        <div class="step"><h3>Route</h3><p>Apertus reads the question and picks one tool from the Swiss MCP server, returning strict JSON with the arguments.</p></div>
+        <div class="step"><h3>Resolve and look up</h3><p>The app fixes what a small model cannot know: "Losanna" becomes municipality 5586, and an age is only used if you wrote one. Then one lookup in official data.</p></div>
+        <div class="step"><h3>Answer</h3><p>Apertus answers in the chosen voice and your language, using only the lookup result. The source links come from the data, not from the model.</p></div>
+      </div>
+      <div class="stack">
+        <span class="chip">Apertus 8B (Swiss AI)</span><span class="chip">vLLM on Modal, L4 GPU</span>
+        <span class="chip">Swiss MCP server</span><span class="chip">Gradio</span><span class="chip">Scales to zero</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap split">
+      <div>
+        <h2>See how I answered.</h2>
+        <p class="sub">Every answer has a panel that shows its work, so you can check it.</p>
+        <ul>
+          <li>The tool and the exact arguments sent to it</li>
+          <li>Assumptions, for example a default age or franchise</li>
+          <li>The official sources, as links</li>
+          <li>Latency per step and the model used</li>
+        </ul>
+      </div>
+      <div class="phone"><img src="assets/mobile-fr.png" alt="Gspänli on a phone in dark mode, answering a French question about school holidays in Vaud" width="780" height="1688" loading="lazy"></div>
+    </div>
+  </section>
+
+  <section class="soft">
+    <div class="wrap why">
+      <h2>Why prompting, not finetuning</h2>
+      <p>The goal was distinct personalities on top of reliable facts. A finetune would need hundreds of good in-character, multilingual, grounded answers per personality and a GPU budget to train and evaluate them. A system prompt gives the same voice control for free, changes in seconds, and keeps facts out of the weights where they would go stale. The real problems we hit, like wrong language detection or invented ages, were fixed in code, not in weights.</p>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="wrap">
+      <h2>Grüezi, give it a try.</h2>
+      <p class="sub" style="margin-left:auto;margin-right:auto">No account, no install. Answers can contain mistakes, so check figures at the linked source.</p>
+      <div class="cta">
+        <a class="btn btn-primary try" href="https://vvanloo1--gspaenli-ui.us-east.modal.run" target="_blank" rel="noopener">Try the live demo</a>
+        <a class="btn btn-ghost" href="https://github.com/vincvloo/gspaenli#run-it-yourself">Run it yourself</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Gspänli is Swiss German for buddy. MIT license.</span>
+    <span>Data: <a href="https://github.com/dantevier/swiss-ai-week-mcp">Swiss MCP server</a> · Model: <a href="https://huggingface.co/swiss-ai/Apertus-8B-Instruct-2509">Apertus</a> · Hosting: <a href="https://modal.com">Modal</a></span>
+  </div>
+</footer>
+
+<script>
+  // Wake the GPU while the app loads. /health is open; the model API itself needs a token.
+  const LLM_HEALTH = "https://vvanloo1--gspaenli-llm-serve.us-east.modal.run/health";
+  let woken = false;
+  document.querySelectorAll(".try").forEach((link) => {
+    link.addEventListener("click", () => {
+      if (woken) return;
+      woken = true;
+      fetch(LLM_HEALTH, { mode: "no-cors", cache: "no-store" }).catch(() => {});
+    });
+  });
+</script>
+</body>
+</html>
