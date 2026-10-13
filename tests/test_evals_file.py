@@ -10,6 +10,9 @@ def test_eval_questions_cover_languages_and_cross_language():
     assert {q["lang"] for q in questions} >= {"en", "fr", "de", "it"}
     assert any(q.get("source_lang") and q["source_lang"] != q["lang"] for q in questions)
     assert all(q["expected_tool"] in ALLOWED_TOOLS for q in questions)
+    multi = [q for q in questions if q.get("required_tools")]
+    assert len(multi) >= 4 and {q["lang"] for q in multi} == {"en", "fr", "de", "it"}
+    assert all(set(q["required_tools"]) <= ALLOWED_TOOLS and len(q["required_tools"]) >= 2 for q in multi)
     assert len({q["id"] for q in questions}) == len(questions)
 
 

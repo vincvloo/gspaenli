@@ -221,6 +221,9 @@ async def _resolve_premium(
         name, code = name or code, None
 
     if code is not None and not name:
+        if int(code) not in user_numbers:
+            # Codes the user did not write are guesses (Apertus sent 6600 for Geneva, it is 6621).
+            return Resolution(arguments, error=f"Municipality code {code} is not in the question; a place name is needed")
         bfs = int(code)
     elif name:
         found = lookup_bfs(str(name), mcp_dir) or await geo_lookup_bfs(str(name), mcp, calls)
@@ -278,13 +281,33 @@ def _invalid_choice(message: str) -> tuple[str, list[str]] | None:
     return None
 
 
+def _coverage(value: str, option: str) -> float:
+    """Share of the option's words found in the value, as substrings so German compounds count:
+    "volksinitiative" covers "initiative". "federal popular initiative" covers all of
+    "initiative" but only half of "federal_vote"."""
+    parts = [p for p in option.lower().split("_") if p]
+    words = set(value.split())
+    # Short codes must be whole words: "rm" is inside "german" but means Romansh.
+    hits = sum((p in value) if len(p) >= 4 else (p in words) for p in parts)
+    return hits / len(parts) if parts else 0.0
+
+
+def _ranked_choices(value: str, options: list[str]) -> list[tuple[str, float]]:
+    import difflib
+
+    def similarity(option: str) -> float:
+        return difflib.SequenceMatcher(None, value, option.replace("_", " ").lower()).ratio()
+
+    scored = [(o, _coverage(value, o), similarity(o)) for o in options]
+    scored.sort(key=lambda s: (s[1], s[2]), reverse=True)  # similarity only breaks ties
+    return [(o, cov if cov else (sim if sim >= 0.6 else 0.0)) for o, cov, sim in scored]
+
+
 def repair_choice(
     arguments: dict[str, Any], message: str, required: set[str] | frozenset[str] = frozenset()
 ) -> tuple[dict[str, Any], str] | None:
     """Map the model's value to the closest allowed option, or drop it if it is optional
     (the model sent language "en" to a tool that only knows it, de, fr, rm)."""
-    import difflib
-
     found = _invalid_choice(message)
     if not found:
         return None
@@ -292,24 +315,28 @@ def repair_choice(
     value = normalize(str(arguments.get(key, "")))
     if not value or not options:
         return None
-    words = set(value.split())
-
-    def similarity(option: str) -> float:
-        return difflib.SequenceMatcher(None, value, option.replace("_", " ").lower()).ratio()
-
-    def score(option: str) -> float:
-        # Share of the option's words the model used: "federal popular initiative" covers all of
-        # "initiative" but only half of "federal_vote". Similarity only breaks ties.
-        parts = set(option.lower().split("_"))
-        return len(words & parts) / len(parts) + 0.1 * similarity(option)
-
-    best = max(options, key=score)
-    if not (words & set(best.lower().split("_"))) and similarity(best) < 0.6:
+    best, score = _ranked_choices(value, options)[0]
+    if not score:
         if key in required:
             return None
         rest = {k: v for k, v in arguments.items() if k != key}
         return rest, f"Dropped {key} {arguments.get(key)!r} (allowed: {', '.join(options)})"
     return {**arguments, key: best}, f"Corrected {key} {arguments.get(key)!r} to {best!r}"
+
+
+def other_named_choices(arguments: dict[str, Any], message: str) -> list[dict[str, Any]]:
+    """Arguments for every other allowed option the model's value names in full.
+
+    "fakultatives Referendum und Volksinitiative" names two topics; Apertus got one lookup and
+    invented the other figure. Each extra option becomes its own lookup.
+    """
+    found = _invalid_choice(message)
+    if not found:
+        return []
+    key, options = found
+    value = normalize(str(arguments.get(key, "")))
+    ranked = [o for o, score in _ranked_choices(value, options) if score >= 1.0]
+    return [{**arguments, key: o} for o in ranked[1:]]
 
 
 def reroute_invented_coordinates(
@@ -354,7 +381,10 @@ def summarize_premiums(text: str) -> str:
     return line + "\n" + text
 
 
-SEARCH_TOOLS = {"search_knowledge"}
+# Text searches: their passages must share a topic word with the question (search_is_relevant).
+SEARCH_TOOLS = {"search_knowledge", "swiss_housing_info"}
+# Lookups that locate a place but answer nothing else on their own.
+HELPER_TOOLS = {"swiss_geo_search", "swiss_geo_context"}
 # Words that say nothing about the topic. Place names are removed separately.
 STOPWORDS = set(
     """
@@ -388,9 +418,139 @@ def search_is_relevant(question: str, arguments: dict[str, Any], result_text: st
     Keyword search matched Bern's moving page for a question about Bern's waste collection on
     the place name alone, and both models then invented a schedule.
     """
-    words = topic_words(question, mcp_dir) | topic_words(str(arguments.get("query", "")), mcp_dir)
+    query = arguments.get("query") or arguments.get("question") or ""
+    words = topic_words(question, mcp_dir) | topic_words(str(query), mcp_dir)
     if not words:
         return True  # nothing to check against
     passages = normalize(result_text)
     # Prefixes catch inflections: entsorge / Entsorgung, Karton / Kartons.
     return any(w[:6] in passages for w in words)
+
+
+def places_in(text: str, mcp_dir: Path) -> list[tuple[str, int | None, str | None]]:
+    """Places named in a text: (name as written, BFS code or None, canton code or None).
+
+    Checks single words and two-word names ("La Chaux-de-Fonds" is handled by the normalizer).
+    """
+    words = [w for w in re.split(r"[^\w'-]+", text) if w]
+    found: list[tuple[str, int | None, str | None]] = []
+    seen: set[str] = set()
+    for size in (2, 1):
+        for i in range(len(words) - size + 1):
+            name = " ".join(words[i : i + size])
+            key = normalize(name)
+            # Place names are written capitalised; "alle" in "alle elezioni" is not Alle (JU).
+            if not name[:1].isupper():
+                continue
+            if len(key) < 4 or key in STOPWORDS or key in seen or any(key in s for s in seen):
+                continue
+            bfs = lookup_bfs(name, mcp_dir)
+            canton = canton_code(name)
+            if bfs or canton:
+                found.append((name, bfs[0] if bfs else None, canton))
+                seen.add(key)
+    return found
+
+
+def uncovered_places(question: str, lookups: list[tuple[str, dict[str, Any], str]], mcp_dir: Path) -> list[str]:
+    """Places in the question that no lookup so far was about.
+
+    Apertus said "done" after looking up Lausanne for "compare Lausanne and Geneva". Naming the
+    missing place in the next-step prompt is cheap and does not depend on the model noticing.
+    """
+    covered_text = normalize(" ".join(json.dumps(args, ensure_ascii=False) + " " + text[:400] for _, args, text in lookups))
+    codes = {str(v) for _, args, _ in lookups for v in args.values()}
+    missing = []
+    for name, bfs, canton in places_in(question, mcp_dir):
+        key = normalize(name)
+        alias = EXONYMS.get(key)
+        if key in covered_text or (alias and alias in covered_text):
+            continue
+        if (bfs is not None and str(bfs) in codes) or (canton is not None and canton in codes):
+            continue
+        missing.append(name)
+    return missing
+
+
+# Tools whose main argument is a place, and how that argument is named (as the router sees it).
+PLACE_ARGUMENTS = {
+    PREMIUM_TOOL: ("municipality", "municipality"),
+    "swiss_school_holidays": ("canton", "canton"),
+    "get_driving_licence_exchange_info": ("canton", "canton"),
+    "bfs_population": ("canton", "canton"),
+}
+
+
+def expand_for_place(tool: str, routed_arguments: dict[str, Any], place: str) -> tuple[str, dict[str, Any]] | None:
+    """The same lookup for another place named in the question ("compare Lausanne and Geneva").
+
+    Apertus noticed the missing place but left out which tool to call, so this does not rely on it.
+    """
+    if tool not in PLACE_ARGUMENTS:
+        return None
+    key, kind = PLACE_ARGUMENTS[tool]
+    value: str | None = place
+    if kind == "canton":
+        value = canton_code(place)
+        if value is None:
+            return None
+    arguments = {k: v for k, v in routed_arguments.items() if k not in {key, "municipality_code"}}
+    arguments[key] = value
+    return tool, arguments
+
+
+# Words that join or compare parts of a question, in the four languages.
+MULTI_PART_WORDS = set(
+    """
+    and or both compare comparison versus vs also plus
+    et ou comparer compare comparaison ainsi aussi
+    und oder sowie vergleich vergleiche vergleichen beide auch
+    e ed o oppure confronta confrontare confronto entrambi anche
+    """.split()
+)
+
+
+def may_have_several_parts(question: str, mcp_dir: Path) -> bool:
+    """Cheap gate before asking the model for another lookup.
+
+    The "anything missing?" call cost Apertus about 5 s per question, so single-part questions
+    (most of them) skip it. Several places named, or a joining word, opens the gate.
+    """
+    words = set(normalize(question).split())
+    return bool(words & MULTI_PART_WORDS) or len(places_in(question, mcp_dir)) > 1
+
+
+def gap_is_covered(missing: str, lookups: list[tuple[str, dict[str, Any], str]], mcp_dir: Path) -> bool:
+    """True when the results so far already contain most topic words of a gap the model named.
+
+    Apertus called the Geneva premium "missing" after it had been looked up; chasing it added an
+    irrelevant lookup and a note telling the answer that Geneva could not be checked.
+    """
+    words = topic_words(missing, mcp_dir)
+    if not words:
+        return False  # only places: uncovered_places decides
+    covered = normalize(" ".join(json.dumps(args, ensure_ascii=False) + " " + text for _, args, text in lookups))
+    found = sum(w[:6] in covered for w in words)
+    return found / len(words) >= 0.6
+
+
+# Word stems (accents removed) that name the topic of a place-based tool, in four languages.
+PLACE_TOOL_STEMS = {
+    "swiss_school_holidays": ("holiday", "vacanc", "ferien", "vacanz", "schulfer"),
+    PREMIUM_TOOL: ("premium", "prime", "pramie", "praemie", "krankenkass", "assurance maladie", "cassa malati", "premio"),
+    "get_driving_licence_exchange_info": ("licence", "license", "permis de conduire", "fuhrerausweis", "fuhrerschein", "patente"),
+    "bfs_population": ("population", "bevolkerung", "einwohner", "popolazione", "abitanti", "habitants"),
+}
+
+
+def place_tool_for(question: str, used: set[str]) -> str | None:
+    """A place-based tool whose topic the question names and that was not used yet.
+
+    For "the rent rate and the autumn holidays in Ticino", Apertus said only "Ticino" was
+    missing; the re-route then chose housing info and the answer invented holiday dates.
+    """
+    text = normalize(question)
+    for tool, stems in PLACE_TOOL_STEMS.items():
+        if tool not in used and any(stem in text for stem in stems):
+            return tool
+    return None

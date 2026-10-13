@@ -51,7 +51,8 @@ def language_scores(text: str) -> dict[str, int]:
     markers = {
         "fr": {"le", "les", "est", "quel", "quelle", "pour", "je", "des", "une", "combien", "comment", "dans", "du",
                "vous", "sont", "aux", "avec", "pas", "peut"},
-        "de": {"der", "die", "das", "ist", "ich", "wie", "was", "für", "und", "ein", "eine", "viel", "wann", "kann"},
+        "de": {"der", "die", "das", "ist", "ich", "wie", "was", "für", "und", "ein", "eine", "viel", "wann", "kann",
+               "von", "im", "seit", "mit", "dem", "den", "nach", "bei", "sich", "werden", "innerhalb"},
         "it": {"il", "lo", "gli", "è", "che", "per", "quanto", "come", "della", "del", "una", "posso", "chi", "quando",
                "alle", "dai", "dei", "delle", "nel", "nella", "sono", "può", "anni", "questa", "questo", "sul"},
         "en": {"the", "is", "what", "how", "for", "and", "can", "my", "i", "do", "when", "much", "which", "in"},
@@ -121,16 +122,22 @@ def route_retry_message(error: str) -> dict[str, str]:
     }
 
 
+Lookup = tuple[str, dict[str, Any], str]  # (tool, arguments, result text)
+
+
+def _call(tool: str, arguments: dict[str, Any]) -> str:
+    return f"{tool}({json.dumps(arguments, ensure_ascii=False)})"
+
+
 def build_answer_messages(
     question: str,
     persona: Persona,
     lang: str,
-    tool_name: str | None,
-    arguments: dict[str, Any],
-    tool_text: str,
+    lookups: list[Lookup],
     notes: list[str],
     history: list[dict[str, str]] | None = None,
 ) -> list[dict[str, str]]:
+    """Answer prompt. One lookup keeps the original layout; several are numbered."""
     lang_name = LANG_NAMES.get(lang, LANG_NAMES["en"])
     system = "\n\n".join(
         [
@@ -140,22 +147,67 @@ def build_answer_messages(
             REPLY_LANGUAGE_RULE,
         ]
     )
-    if tool_name:
-        call = f"{tool_name}({json.dumps(arguments, ensure_ascii=False)})"
-        result = tool_text.strip() or "(empty result)"
+    notes_line = f"NOTES: {'; '.join(notes) if notes else 'none'}"
+    if not lookups:
+        body = (
+            f"TOOL: none\n{notes_line}\n"
+            "TOOL RESULT:\n(no tool was called: answer briefly in character, give no facts or figures)"
+        )
+    elif len(lookups) == 1:
+        tool, arguments, text = lookups[0]
+        body = f"TOOL: {_call(tool, arguments)}\n{notes_line}\nTOOL RESULT:\n{text.strip() or '(empty result)'}"
     else:
-        call = "none"
-        result = "(no tool was called: answer briefly in character, give no facts or figures)"
+        blocks = [
+            f"TOOL RESULT {i} of {len(lookups)}, from {_call(tool, arguments)}:\n{text.strip() or '(empty result)'}"
+            for i, (tool, arguments, text) in enumerate(lookups, start=1)
+        ]
+        body = f"{notes_line}\nUse all results below; each covers part of the question.\n\n" + "\n\n".join(blocks)
     user = (
-        f"QUESTION: {question}\n\n"
-        f"TOOL: {call}\n"
-        f"NOTES: {'; '.join(notes) if notes else 'none'}\n"
-        f"TOOL RESULT:\n{result}\n\n"
+        f"QUESTION: {question}\n\n{body}\n\n"
         # Last line on purpose: small models follow the most recent instruction best.
         f"Stay in character as {persona.name}. "
         f"Answer in {lang_name}, the language of the question. {REPLY_LANGUAGE_RULE}"
     )
     return [{"role": "system", "content": system}, *(history or [])[-4:], {"role": "user", "content": user}]
+
+
+NEXT_STEP_SYSTEM = """You check whether the lookups so far are enough to answer a question about Switzerland.
+Return only a JSON object, no prose. First write what is still missing, then decide:
+{{"missing": "<at most 8 words: the part no result covers yet, or nothing>", "done": true}}
+or, if a part of the question is still unanswered and one of the tools can answer it:
+{{"missing": "<that part>", "done": false, "tool": "<tool name>", "arguments": {{...}}}}
+
+- Check every part of the question: each place, each topic, each item to compare.
+- Ask for at most one more lookup. Answer "done" only when every part is covered.
+- Never repeat a lookup that was already made with the same arguments.
+- Use only argument names from the tool's list. Place names go in as written by the user.
+- {language_rule}
+
+Tools:
+{tools}"""
+
+NEXT_STEP_RESULT_CHARS = 700
+
+
+def build_next_step_messages(
+    question: str, tools: dict[str, ToolInfo], done: list[Lookup], uncovered: list[str] | None = None
+) -> list[dict[str, str]]:
+    """Ask the model whether the lookups so far answer the question, or which one to add."""
+    system = NEXT_STEP_SYSTEM.format(
+        language_rule=REPLY_LANGUAGE_RULE,
+        tools="\n".join(_tool_line(t, full=False) for _, t in sorted(tools.items())),
+    )
+    made = "\n\n".join(
+        f"LOOKUP {i}: {_call(tool, arguments)}\nRESULT: {' '.join(text.split())[:NEXT_STEP_RESULT_CHARS]}"
+        for i, (tool, arguments, text) in enumerate(done, start=1)
+    )
+    hint = ""
+    if uncovered:
+        hint = f"Places in the question with no lookup yet: {', '.join(uncovered)}.\n\n"
+    return [
+        {"role": "system", "content": system},
+        {"role": "user", "content": f"Question: {question}\n\n{made}\n\n{hint}JSON:"},
+    ]
 
 
 NO_DATA_RULES = """The official lookup found nothing that answers this question.

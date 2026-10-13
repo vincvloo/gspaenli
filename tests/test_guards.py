@@ -211,3 +211,14 @@ async def test_greetings_still_need_no_tool(personas, places_db):
     llm = FakeLLM([_route("none", {}, "it"), "Ciao!"])
     await Orchestrator(llm, mcp, personas, places_db).answer("Ciao, come stai?", "buenzli")
     assert mcp.calls == []
+
+
+async def test_invented_municipality_code_is_refused(places_db):
+    from gspaenli.resolver import PREMIUM_TOOL, resolve
+
+    mcp = FakeMCP()
+    q = "Compare the minimum premium in Lausanne and Geneva"
+    res = await resolve(PREMIUM_TOOL, {"municipality_code": 6600}, mcp.tools, mcp, places_db, q)
+    assert res.error and "not in the question" in res.error
+    res = await resolve(PREMIUM_TOOL, {"municipality_code": 5586}, mcp.tools, mcp, places_db, "Premium in BFS 5586?")
+    assert res.error is None and res.arguments["municipality_code"] == 5586

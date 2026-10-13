@@ -32,13 +32,24 @@ flowchart LR
     A -->|OpenAI API + bearer token| L["vLLM: Apertus 8B<br/>Modal, L4 GPU, scales to zero"]
 ```
 
-Each turn makes two model calls and one tool call:
+Each turn makes one to three lookups on the [Swiss MCP server](https://github.com/dantevier/swiss-ai-week-mcp). The MCP only executes calls; the app decides what to look up:
 
 1. **Route.** The model gets the question, the persona's preferred tools and the tool list, and returns strict JSON: `{"tool": ..., "arguments": ..., "lang": ...}`. vLLM enforces the JSON schema. If parsing fails, it retries once, then falls back to a full-text search.
-2. **Resolve and call.** The app fixes what a small model cannot know. "Lausanne" or "Losanna" becomes municipality number 5586 (from the MCP's own places database), canton names become codes, and an age or franchise is only used if the user actually wrote it, otherwise a stated default applies. Then it calls one tool on the [Swiss MCP server](https://github.com/dantevier/swiss-ai-week-mcp).
-3. **Answer.** The model answers in persona using only the tool result, in the language of the question. Source links in the panel come from the data, not from the model.
+2. **Resolve and look up.** The app fixes what a small model cannot know. "Lausanne" or "Losanna" becomes municipality number 5586 (from the MCP's own places database), canton names become codes, and an age or franchise is only used if the user actually wrote it, otherwise a stated default applies. Rejected arguments are repaired and retried once.
+3. **More lookups, only if needed.** For a question with several parts ("compare Lausanne and Geneva", "the rent rate and the Ticino holidays"), the model is asked what is still missing and names one more lookup, up to three in total. The app also catches places from the question that no lookup covered yet. Single-part questions skip this check.
+4. **Answer.** The model answers in persona using only the lookup results, in the language of the question. A failed or irrelevant lookup gives an honest "not in the official data". Links in the answer must come from the data.
 
-The model does not need native tool calling, so any OpenAI-compatible endpoint works.
+```
+question -> lookup 1 -> anything missing? -- no --> answer
+                              | yes
+                              v
+                          lookup 2 -> anything missing? -- no --> answer
+                              | yes
+                              v
+                          lookup 3 -> answer (limit reached)
+```
+
+The model does not need native tool calling, so any OpenAI-compatible endpoint works. The "How I answered" panel lists every lookup with its arguments and why the app stopped.
 
 ## Why prompting, not finetuning
 
@@ -46,14 +57,14 @@ The goal was distinct personalities on top of reliable facts. A finetune would n
 
 ## Evals
 
-12 questions in four languages, run through the real pipeline, with every answer checked by hand against the data it came from. Details and per-question grades: [evals/README.md](evals/README.md).
+16 questions in four languages, four of them needing two lookups, run through the real pipeline, with every answer checked by hand against the data it came from. Details and per-question grades: [evals/README.md](evals/README.md).
 
-| Model | Right tool | Right language | Fully grounded | Median time |
-|---|---|---|---|---|
-| Apertus 8B | 12/12 | 12/12 | 10/12 | 10.4 s |
-| Qwen3 8B | 12/12 | 12/12 | 11/12 | 11.6 s |
+| Model | Single-step: right tool | Multi-step: all lookups | Right language | Fully grounded | Median time single / multi |
+|---|---|---|---|---|---|
+| Apertus 8B | 12/12 | 4/4 | 16/16 | 12/16 | 7 s / 10 s |
+| Qwen3 8B | 12/12 | 4/4 | 16/16 | 12/16 | 7 s / 11 s |
 
-The first run looked good on tool choice alone (Apertus 11/12), but only about half of the answers were fully grounded: some came from the model's memory after a rejected tool call, invented coordinates or an invented date. Each problem became a small, tested fix in code: argument repair, treating non-answers as missing data, a relevance check on search results, and an honest "not in the official data" answer with nothing to improvise from.
+The first run looked good on tool choice alone (Apertus 11/12), but only about half of the answers were fully grounded: some came from the model's memory after a rejected tool call, invented coordinates or an invented date. Each problem became a small, tested fix in code: argument repair, treating non-answers as missing data, a relevance check on search results, and an honest "not in the official data" answer with nothing to improvise from. Multi-step lookups needed the same approach: Apertus noticed a missing city but often named no tool, so the app catches uncovered places itself. Times vary between runs (Apertus single-step 7 to 13 s).
 
 ## Run it yourself
 
@@ -94,12 +105,14 @@ Add a YAML file to `personas/` with `id`, `name`, `tagline`, `system_prompt`, `p
 
 ## Cost
 
-Both Modal apps scale to zero. The GPU (L4, about $0.80 per hour) runs only while answering and for 5 minutes after; the app container stays up 15 minutes after the last visit. Limits: one GPU container, 20 questions per session, 300 per day. The first answer after idle takes about 2 minutes while the model loads, later ones 5 to 12 seconds.
+Both Modal apps scale to zero. The GPU (L4, about $0.80 per hour) runs only while answering and for 5 minutes after; the app container stays up 15 minutes after the last visit. Limits: one GPU container, 20 questions per session, 300 per day. The first answer after idle takes about 2 minutes while the model loads, later ones about 7 to 13 seconds, and 10 to 22 seconds for questions that need two or three lookups.
 
 ## Known limits
 
-- One tool call per turn. Questions that need two lookups get a partial answer.
-- Apertus 8B sometimes adds facts that are not in the data, especially when the lookup returns little (see [evals](evals/README.md)), or credits a source to the wrong office. The source links in the panel are always taken from the data.
+- At most three lookups per question. Multi-step questions take about 4 to 10 seconds longer, depending on how many lookups they need.
+- Answers that combine several results can still misread one of them (in the evals, Qwen turned "19 to 23 October" into "23 to 23 October").
+- Both models still add small unsupported details now and then, such as a wrong office name or "permit B is short-term" (see [evals](evals/README.md)).
+- The source links in the panel, and any link in an answer, are always taken from the data.
 - When the data does not cover a question (for example waste collection days in Bern), the app says so. A question in one language against saved pages in another can also end up as "not found".
 - Persona flavour is uneven, especially for the Bünzli neighbour.
 - Data is what the Swiss MCP covers: premiums are 2026 only, some topics only exist as saved pages.
@@ -108,7 +121,6 @@ Both Modal apps scale to zero. The GPU (L4, about $0.80 per hour) runs only whil
 
 ## Next steps
 
-- Multi-step tool use (lookup, then lookup again) for questions that need it.
 - More eval questions, and an automatic grounding check instead of reading answers by hand.
 - Voice: speech in and out in four languages.
 

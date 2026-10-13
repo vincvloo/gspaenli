@@ -196,11 +196,11 @@
   <section class="soft" id="how">
     <div class="wrap">
       <h2>How it works</h2>
-      <p class="sub">Two calls to an open model and one call to a Swiss data server, for every question. No native tool calling needed, so any open model can do it.</p>
+      <p class="sub">One to three lookups in official Swiss data per question, decided by the app and the model together. No native tool calling needed, so any open model can do it.</p>
       <div class="steps">
         <div class="step"><h3>Route</h3><p>Apertus reads the question and picks one tool from the Swiss MCP server, returning strict JSON with the arguments.</p></div>
-        <div class="step"><h3>Resolve and look up</h3><p>The app fixes what a small model cannot know: "Losanna" becomes municipality 5586, and an age is only used if you wrote one. Then one lookup in official data.</p></div>
-        <div class="step"><h3>Answer</h3><p>Apertus answers in the chosen voice and your language, using only the lookup result. The source links come from the data, not from the model.</p></div>
+        <div class="step"><h3>Look up, as often as needed</h3><p>The app fixes what a small model cannot know: "Losanna" becomes municipality 5586, and an age is only used if you wrote one. "Compare Lausanne and Geneva" gets one lookup per city, up to three in total.</p></div>
+        <div class="step"><h3>Answer</h3><p>Apertus answers in the chosen voice and your language, using only the lookup results. No data means an honest "not found", and every link comes from the data.</p></div>
       </div>
       <div class="stack">
         <span class="chip">Apertus 8B (Swiss AI)</span><span class="chip">vLLM on Modal, L4 GPU</span>
@@ -215,7 +215,7 @@
         <h2>See how I answered.</h2>
         <p class="sub">Every answer has a panel that shows its work, so you can check it.</p>
         <ul>
-          <li>The tool and the exact arguments sent to it</li>
+          <li>Every lookup and the exact arguments sent</li>
           <li>Assumptions, for example a default age or franchise</li>
           <li>The official sources, as links</li>
           <li>Latency per step and the model used</li>

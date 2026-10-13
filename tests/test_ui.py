@@ -23,7 +23,7 @@ def test_trace_shows_tool_args_sources_latency_model():
     assert '"municipality_code": 5586' in md
     assert "[https://www.priminfo.admin.ch/de/praemien](https://www.priminfo.admin.ch/de/praemien)" in md
     assert "Assumed an adult aged 30" in md
-    assert "route 1.0 s, tool 0.5 s, answer 4.9 s, total 6.5 s" in md
+    assert "route 1.0 s, lookups 0.5 s, answer 4.9 s, total 6.5 s" in md
     assert "Apertus-8B-Instruct-2509" in md and "reply language:** fr" in md
     assert "—" not in md  # house style: no em-dashes
 
@@ -112,3 +112,19 @@ def test_ui_has_no_server_timer():
     from pathlib import Path
 
     assert "gr.Timer" not in Path("gspaenli/ui.py").read_text(encoding="utf-8")
+
+
+def test_trace_lists_each_lookup_when_there_are_several():
+    steps = [
+        {"tool": "swiss_health_insurance_premiums", "arguments": {"municipality_code": 5586}, "error": None, "latency_s": 0.6},
+        {"tool": "swiss_school_holidays", "arguments": {"canton": "VD"}, "error": "timeout", "latency_s": 2.0},
+    ]
+    md = format_trace(
+        _trace(tool="swiss_health_insurance_premiums", steps=steps, stop_reason="the model had enough",
+               latency_s={"route": 1.0, "tool": 2.6, "next_step": 1.2, "answer": 5.0, "total": 9.8})
+    )
+    assert "**Lookups (2, Swiss MCP):**" in md
+    assert '1. `swiss_health_insurance_premiums` `{"municipality_code": 5586}` (0.6 s)' in md
+    assert "2. `swiss_school_holidays`" in md and "no answer: timeout" in md
+    assert "**Stopped because:** the model had enough" in md
+    assert "next-step checks 1.2 s" in md

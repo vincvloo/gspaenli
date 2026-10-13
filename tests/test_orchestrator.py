@@ -28,7 +28,8 @@ async def test_full_turn_with_premium_tool(personas, places_db):
     assert t.tool == "swiss_health_insurance_premiums" and t.lang == "fr"
     assert t.sources == ["https://kvgmapper26.github.io/maps/a.html", "https://www.priminfo.admin.ch/de/praemien"]
     assert t.model_id == "fake/model"
-    assert set(t.latency_s) == {"route", "tool", "answer", "total"}
+    assert set(t.latency_s) == {"route", "tool", "answer", "total"}  # single-part: no next-step call
+    assert len(t.steps) == 1 and t.stop_reason == "single-part question"
     answer_prompt = llm.calls[1]["messages"][-1]["content"]
     assert "531.7" in answer_prompt and "Answer in French" in answer_prompt
     assert llm.calls[1]["json_schema"] is None
