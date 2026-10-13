@@ -18,6 +18,8 @@ from typing import Any, Protocol
 from .mcp_client import ToolInfo, ToolResult
 
 PREMIUM_TOOL = "swiss_health_insurance_premiums"
+PERMIT_TOOL = "swiss_residence_permit_guidance"
+NULL_STRINGS = {"", "none", "null", "n/a"}
 # Name filters that only match some languages ("autumn" works, "Herbstferien" does not).
 # Without them the result is a short list for the whole school year, and the answer step picks.
 DROP_ARGUMENTS = {"swiss_school_holidays": {"holiday_type"}}
@@ -106,6 +108,17 @@ def router_tools(tools: dict[str, ToolInfo]) -> dict[str, ToolInfo]:
                 "required": ["municipality"],
             },
         )
+    if PERMIT_TOOL in tools:
+        base = tools[PERMIT_TOOL]
+        shown[PERMIT_TOOL] = ToolInfo(
+            name=PERMIT_TOOL,
+            description=(
+                base.description.strip() + " group: eu_efta for citizens of any EU country or of Iceland, "
+                "Liechtenstein or Norway (for example Germany, France, Italy, Austria, Spain, Portugal, "
+                "Poland); uk for the United Kingdom; third_country for everyone else (for example USA, India)."
+            ),
+            input_schema=base.input_schema,
+        )
     return shown
 
 
@@ -146,6 +159,8 @@ def coerce_arguments(arguments: dict[str, Any], tool: ToolInfo) -> dict[str, Any
     for key, value in arguments.items():
         if key not in props or value is None:
             continue
+        if isinstance(value, str) and value.strip().lower() in NULL_STRINGS:  # router wrote "None"
+            continue
         types = {props[key].get("type")} | {t.get("type") for t in props[key].get("anyOf", [])}
         try:
             if "integer" in types and isinstance(value, (str, float)):
@@ -176,10 +191,13 @@ async def resolve(
     if tool_name == PREMIUM_TOOL:
         return await _resolve_premium(arguments, mcp, mcp_dir, numbers_in(question))
     args = {k: v for k, v in arguments.items() if k not in DROP_ARGUMENTS.get(tool_name, set())}
+    # Dates the user did not write are guesses ("the current rate" became as_of 2023-10-10).
+    invented = [k for k, v in args.items() if isinstance(v, str) and DATE_VALUE.match(v) and v[:4] not in question]
+    notes = [f"Dropped {k} {args.pop(k)!r}: no date in the question" for k in invented]
     if isinstance(args.get("canton"), str) and (code := canton_code(args["canton"])):
         args["canton"] = code
     tool = tools.get(tool_name)
-    return Resolution(arguments=coerce_arguments(args, tool) if tool else args)
+    return Resolution(arguments=coerce_arguments(args, tool) if tool else args, notes=notes)
 
 
 def _user_number(arguments: dict[str, Any], key: str, user_numbers: set[int]) -> int | None:
@@ -225,3 +243,112 @@ async def _resolve_premium(
             "a higher franchise lowers the premium"
         )
     return Resolution({"age": age, "municipality_code": bfs, "franchise": franchise}, notes, calls)
+
+
+# --- Guards found by the evals -------------------------------------------------------------
+
+INVALID_CHOICE = re.compile(r"(\w+) must be one of: ([^.]+)")
+LITERAL_ERROR = re.compile(r"^(\w+)\n\s+Input should be (.+?) \[type=literal_error", flags=re.M)
+DATE_VALUE = re.compile(r"^\d{4}-\d{2}-\d{2}")
+OK_STATUSES = {"answered", "ok", "success"}
+
+
+def result_problem(text: str) -> str | None:
+    """A message when a JSON tool result says it did not answer (e.g. status invalid_input).
+
+    The MCP reports these as normal results, so without this the answer step improvised.
+    """
+    try:
+        data = json.loads(text)
+    except (json.JSONDecodeError, TypeError):
+        return None
+    if not isinstance(data, dict) or "status" not in data:
+        return None
+    if str(data["status"]).lower() in OK_STATUSES:
+        return None
+    return str(data.get("message") or data["status"])
+
+
+def _invalid_choice(message: str) -> tuple[str, list[str]] | None:
+    """(argument, allowed values) from the MCP's own message or a pydantic literal error."""
+    if match := INVALID_CHOICE.search(message):
+        return match.group(1), [o.strip() for o in match.group(2).split(",") if o.strip()]
+    if match := LITERAL_ERROR.search(message):
+        return match.group(1), re.findall(r"'([^']+)'", match.group(2))
+    return None
+
+
+def repair_choice(
+    arguments: dict[str, Any], message: str, required: set[str] | frozenset[str] = frozenset()
+) -> tuple[dict[str, Any], str] | None:
+    """Map the model's value to the closest allowed option, or drop it if it is optional
+    (the model sent language "en" to a tool that only knows it, de, fr, rm)."""
+    import difflib
+
+    found = _invalid_choice(message)
+    if not found:
+        return None
+    key, options = found
+    value = normalize(str(arguments.get(key, "")))
+    if not value or not options:
+        return None
+    words = set(value.split())
+
+    def similarity(option: str) -> float:
+        return difflib.SequenceMatcher(None, value, option.replace("_", " ").lower()).ratio()
+
+    def score(option: str) -> float:
+        # Share of the option's words the model used: "federal popular initiative" covers all of
+        # "initiative" but only half of "federal_vote". Similarity only breaks ties.
+        parts = set(option.lower().split("_"))
+        return len(words & parts) / len(parts) + 0.1 * similarity(option)
+
+    best = max(options, key=score)
+    if not (words & set(best.lower().split("_"))) and similarity(best) < 0.6:
+        if key in required:
+            return None
+        rest = {k: v for k, v in arguments.items() if k != key}
+        return rest, f"Dropped {key} {arguments.get(key)!r} (allowed: {', '.join(options)})"
+    return {**arguments, key: best}, f"Corrected {key} {arguments.get(key)!r} to {best!r}"
+
+
+def reroute_invented_coordinates(
+    tool_name: str, arguments: dict[str, Any], question: str
+) -> tuple[str, dict[str, Any], str] | None:
+    """Users do not type coordinates. If the model made them up for a geo tool, the question
+    is not really about a point on the map: send it to the full-text search instead."""
+    if tool_name != "swiss_geo_context":
+        return None
+    coords = [arguments.get("latitude"), arguments.get("longitude")]
+    if all(c is not None and str(c) in question for c in coords):
+        return None
+    return "search_knowledge", {"query": question}, "Rerouted: the question gives no coordinates"
+
+
+def drop_named_optional(
+    arguments: dict[str, Any], message: str, required: set[str] | frozenset[str] = frozenset()
+) -> tuple[dict[str, Any], str] | None:
+    """The tool complained about an optional argument by name ("... vat_rate standard or
+    reduced"): drop it and let the tool use its default."""
+    named = [k for k in arguments if k not in required and re.search(rf"\b{re.escape(k)}\b", message)]
+    if not named:
+        return None
+    rest = {k: v for k, v in arguments.items() if k not in named}
+    return rest, "Dropped " + ", ".join(f"{k} {arguments[k]!r}" for k in named) + " after a tool error"
+
+
+def summarize_premiums(text: str) -> str:
+    """One plain line on top of the premium JSON, so a small model quotes the right figure."""
+    try:
+        data = json.loads(text)
+        rows = {p["accident_cover"]: p for p in data["premiums"]}
+        without, with_ = rows["excluded"], rows["included"]
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return text
+    line = (
+        f"SUMMARY: {data.get('municipality')}, {data.get('age_group')}, franchise {data.get('franchise_chf')} CHF, "
+        f"{data.get('year')}. Cheapest monthly premium WITHOUT accident cover: {without['minimum_premium']} CHF "
+        f"({without['insurer']}, {without['model']}). Cheapest WITH accident cover: {with_['minimum_premium']} CHF "
+        f"({with_['insurer']}, {with_['model']})."
+    )
+    return line + "\n" + text

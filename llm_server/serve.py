@@ -4,6 +4,8 @@ Deploy (defaults: Apertus 8B on an L4):
     uv run modal deploy llm_server/serve.py
 Other model or GPU, no code change:
     MODEL_ID=Qwen/Qwen3-8B GPU=A10 uv run modal deploy llm_server/serve.py
+Second model next to the live one (own URL):
+    LLM_APP_NAME=gspaenli-llm-qwen MODEL_ID=Qwen/Qwen3-8B uv run modal deploy llm_server/serve.py
 
 Deploy-time settings are baked into the image env so the container sees the same values.
 """
@@ -18,6 +20,8 @@ MODEL_ID = os.environ.get("MODEL_ID", "swiss-ai/Apertus-8B-Instruct-2509")
 # A10 (also 24 GB) is the fallback when Modal has no L4 capacity.
 GPU = os.environ.get("GPU", "L4,A10")
 MAX_MODEL_LEN = os.environ.get("MAX_MODEL_LEN", "8192")
+# Separate app name lets a second model run next to the live one, e.g. for evals.
+APP_NAME = os.environ.get("LLM_APP_NAME", "gspaenli-llm")
 # Optional Hugging Face token secret, only needed for gated models or rate limits.
 HF_SECRET = os.environ.get("HF_SECRET", "")
 
@@ -35,6 +39,7 @@ image = (
             "GPU": GPU,
             "MAX_MODEL_LEN": MAX_MODEL_LEN,
             "HF_SECRET": HF_SECRET,
+            "LLM_APP_NAME": APP_NAME,
         }
     )
 )
@@ -46,7 +51,7 @@ secrets = [modal.Secret.from_name("gspaenli-llm")]  # LLM_API_KEY
 if HF_SECRET:
     secrets.append(modal.Secret.from_name(HF_SECRET))  # HF_TOKEN
 
-app = modal.App("gspaenli-llm")
+app = modal.App(APP_NAME)
 
 
 @app.function(

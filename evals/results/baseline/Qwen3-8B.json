@@ -1,0 +1,254 @@
+{
+  "summary": {
+    "model": "Qwen/Qwen3-8B",
+    "questions": 12,
+    "tool_accuracy": 1.0,
+    "language_accuracy": 1.0,
+    "router_fallbacks": 0,
+    "tool_errors": 2,
+    "median_latency_s": 10.7,
+    "warmup_s": 208.1
+  },
+  "rows": [
+    {
+      "id": "premium_en",
+      "question": "What is the minimum health insurance premium in Lausanne for an adult?",
+      "expected_tool": "swiss_health_insurance_premiums",
+      "expected_lang": "en",
+      "tool": "swiss_health_insurance_premiums",
+      "arguments": {
+        "age": 30,
+        "municipality_code": 5586,
+        "franchise": 300
+      },
+      "routed_lang": "en",
+      "answer_lang": "en",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 15.87,
+      "answer": "In Lausanne, the minimum health insurance premium for an adult aged 30 in 2026 is:\n\n1. **531.7 CHF** if accident cover is **excluded** (this is the lowest option).  \n2. **570.1 CHF** if accident cover is **included**.  \n\nThese amounts are based on a standard **franchise (deductible)** of 300 CHF. You can compare offers directly on the source map: [Lausanne health insurance premiums 2026](https://kvgmapper26.github.io/maps/map-AKL-ERW-OHN-UNF-FRA-300.html).  \n\nFor the most up-to-date information in 2027, check with your commune or the official reference: [Swiss health insurance premiums](https://www.priminfo.admin.ch/de/praemien).",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "premium_fr",
+      "question": "Quelle est la prime minimale d'assurance maladie à Lausanne pour un adulte ?",
+      "expected_tool": "swiss_health_insurance_premiums",
+      "expected_lang": "fr",
+      "tool": "swiss_health_insurance_premiums",
+      "arguments": {
+        "age": 30,
+        "municipality_code": 5586,
+        "franchise": 300
+      },
+      "routed_lang": "fr",
+      "answer_lang": "fr",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 14.44,
+      "answer": "La prime minimale d'assurance maladie à Lausanne pour un adulte âgé de 30 ans, avec une franchise de 300 CHF, varie selon le type d'assurance.  \n\n1. Si l'assurance ne couvre pas les accidents, la prime minimale est de 531.70 CHF (assureur Sanitas, modèle TelMed).  \n2. Si l'assurance inclut la couverture accident, la prime minimale est de 570.10 CHF (assureur Atupri, modèle HMO).  \n\nPour comparer les offres, tu peux consulter ce lien : [Primes d'assurance maladie à Lausanne](https://kvgmapper26.github.io/maps/map-AKL-ERW-OHN-UNF-FRA-300.html).",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "premium_de_young",
+      "question": "Wie hoch ist die günstigste Krankenkassenprämie in Zürich für eine 24-jährige Person mit Franchise 2500?",
+      "expected_tool": "swiss_health_insurance_premiums",
+      "expected_lang": "de",
+      "tool": "swiss_health_insurance_premiums",
+      "arguments": {
+        "age": 24,
+        "municipality_code": 261,
+        "franchise": 2500
+      },
+      "routed_lang": "de",
+      "answer_lang": "de",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 14.01,
+      "answer": "Die günstigste Krankenkassenprämie in Zürich für eine 24-jährige Person mit Franchise 2500 beträgt 225.9 CHF. Diese Prämie gilt für die Versicherung ohne Unfallversicherung (accident_cover: excluded). Die Quelle ist [https://kvgmapper26.github.io/maps/map-AKL-JUG-OHN-UNF-FRA-2500.html](https://kvgmapper26.github.io/maps/map-AKL-JUG-OHN-UNF-FRA-2500.html). Die offizielle Referenz finden Sie unter [https://www.priminfo.admin.ch/de/praemien](https://www.priminfo.admin.ch/de/praemien).",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "premium_it",
+      "question": "Quanto costa al minimo la cassa malati a Lugano per un adulto?",
+      "expected_tool": "swiss_health_insurance_premiums",
+      "expected_lang": "it",
+      "tool": "swiss_health_insurance_premiums",
+      "arguments": {
+        "age": 30,
+        "municipality_code": 5192,
+        "franchise": 300
+      },
+      "routed_lang": "it",
+      "answer_lang": "it",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 11.31,
+      "answer": "La cassa malati a Lugano per un adulto di 30 anni con franchigia di 300 CHF costa al minimo **554,70 CHF** senza copertura infortuni e **583,90 CHF** con copertura infortuni. I dati sono validi per il 2026 e si riferiscono all'assicurazione Agrisano con il modello AGRIsmart. Per ulteriori informazioni, puoi consultare il sito ufficiale [qui](https://www.priminfo.admin.ch/de/praemien).",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "permit_fr",
+      "question": "Je viens d'arriver d'Allemagne pour travailler, quel permis de séjour me faut-il ?",
+      "expected_tool": "swiss_residence_permit_guidance",
+      "expected_lang": "fr",
+      "tool": "swiss_residence_permit_guidance",
+      "arguments": {
+        "group": "third_country",
+        "topic": "work"
+      },
+      "routed_lang": "fr",
+      "answer_lang": "fr",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 16.28,
+      "answer": "Bonjour ! Tu dois demander un **permis de séjour B** si tu viens d’un pays non de l’UE/EFTA et que tu veux travailler en Suisse. Ce permis est destiné aux personnes hautement qualifiées, comme les managers, les spécialistes ou les professionnels qualifiés. Tu dois avoir un diplôme universitaire et plusieurs années d’expérience professionnelle.\n\n1. Vérifie que ton employeur peut prouver qu’il n’y a pas de personne qualifiée en Suisse ou dans l’UE/EFTA pour ce poste.  \n2. Assure-toi que ton salaire et tes conditions de travail sont conformes aux normes locales.  \n3. Demande ton permis à l’autorité cantonale compétente.  \n\nPour plus d’informations, tu peux consulter le site officiel de la Sécurité sociale [ici](https://www.sem.admin.ch/sem/en/home/themen/arbeit/nicht-eu_efta-angehoerige.html).",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "initiative_en",
+      "question": "How many signatures does a federal popular initiative need?",
+      "expected_tool": "swiss_federal_political_rights",
+      "expected_lang": "en",
+      "tool": "swiss_federal_political_rights",
+      "arguments": {
+        "topic": "initiative"
+      },
+      "routed_lang": "en",
+      "answer_lang": "en",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 4.96,
+      "answer": "A federal popular initiative requires 100,000 valid signatures. (Volksinitiative) Source: https://www.bk.admin.ch/de/volksinitiativen.",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "national_council_it",
+      "question": "Chi può votare alle elezioni del Consiglio nazionale?",
+      "expected_tool": "swiss_federal_political_rights",
+      "expected_lang": "it",
+      "tool": "swiss_federal_political_rights",
+      "arguments": {
+        "topic": "national_council"
+      },
+      "routed_lang": "it",
+      "answer_lang": "it",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 7.69,
+      "answer": "La cittadinanza svizzera può votare alle elezioni del Consiglio nazionale a partire dai 18 anni (Altersgrenze). Questa regola è stabilita nel testo della fonte (https://www.bk.admin.ch/de/nationalratswahlen). Le elezioni del Consiglio dei Cantoni seguono invece le norme cantonali.",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "parcel_vat_de",
+      "question": "Wie viel Mehrwertsteuer zahle ich auf ein Paket im Wert von 200 Franken aus dem Ausland?",
+      "expected_tool": "swiss_import_parcel_vat",
+      "expected_lang": "de",
+      "tool": "swiss_import_parcel_vat",
+      "arguments": {
+        "goods_value_chf": 200
+      },
+      "routed_lang": "de",
+      "answer_lang": "de",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 10.13,
+      "answer": "Die Mehrwertsteuer beträgt 8,1 % des Bewertungsbetrags. Für ein Paket im Wert von 200 Franken aus dem Ausland beläuft sich die geschätzte Mehrwertsteuer auf 16,2 Franken. (Artikel 25 des Mehrwertsteuergesetzes)  \nQuelle: [https://www.bazg.admin.ch/en/receipt-of-letters-and-parcels](https://www.bazg.admin.ch/en/receipt-of-letters-and-parcels)",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "reference_rate_en",
+      "question": "What is the current reference interest rate for rents?",
+      "expected_tool": "swiss_reference_interest_rate",
+      "expected_lang": "en",
+      "tool": "swiss_reference_interest_rate",
+      "arguments": {
+        "as_of": "2023-10-10",
+        "language": "en"
+      },
+      "routed_lang": "en",
+      "answer_lang": "en",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": "1 validation error for call[swiss_reference_interest_rate]\nlanguage\n  Input should be 'it', 'de', 'fr' or 'rm' [type=literal_error, input_value='en', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/literal_error",
+      "latency_s": 5.22,
+      "answer": "Grüezi. It seems even I cannot find the current reference interest rate for rents, as the tool returned an error. Please check the official source for the most accurate information.",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "holidays_fr",
+      "question": "Quand sont les vacances scolaires d'automne dans le canton de Vaud ?",
+      "expected_tool": "swiss_school_holidays",
+      "expected_lang": "fr",
+      "tool": "swiss_school_holidays",
+      "arguments": {
+        "canton": "VD"
+      },
+      "routed_lang": "fr",
+      "answer_lang": "fr",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 5.64,
+      "answer": "Grüezi, les vacances d'automne dans le canton de Vaud sont du 10 octobre au 25 octobre 2026. C’est écrit sur le site OpenHolidays.",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "licence_en",
+      "question": "Can I exchange my US driving licence in Zurich?",
+      "expected_tool": "get_driving_licence_exchange_info",
+      "expected_lang": "en",
+      "tool": "get_driving_licence_exchange_info",
+      "arguments": {
+        "canton": "ZH",
+        "fact_type": "fees"
+      },
+      "routed_lang": "en",
+      "answer_lang": "en",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": "1 validation error for call[get_driving_licence_exchange_info]\nfact_type\n  Input should be 'all', 'fee', 'deadline' or 'requirement' [type=literal_error, input_value='fees', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/literal_error",
+      "latency_s": 5.41,
+      "answer": "I'm sorry, but I couldn't find the information you're looking for. Please check the tool's documentation or try a different query. For help with exchanging your driving licence in Zurich, you can contact your commune directly.",
+      "tool_ok": true,
+      "lang_ok": true
+    },
+    {
+      "id": "waste_de",
+      "question": "Wann ist in Bern die Kehrichtabfuhr und wie entsorge ich Karton?",
+      "expected_tool": "search_knowledge",
+      "expected_lang": "de",
+      "tool": "search_knowledge",
+      "arguments": {
+        "query": "Kehrichtabfuhr Bern Karton",
+        "limit": 5
+      },
+      "routed_lang": "de",
+      "answer_lang": "de",
+      "fallback": false,
+      "route_attempts": 1,
+      "tool_error": null,
+      "latency_s": 11.27,
+      "answer": "Die Kehrichtabfuhr in Bern wird nicht direkt auf den Suchergebnissen erwähnt, weshalb ich Ihnen leider nicht sagen kann, wann die Abfuhr stattfindet. Sie finden die genaue Abfuhrzeit auf der offiziellen Website der Stadt Bern: [https://www.bern.ch/themen/zuzug-umzug-wegzug/](https://www.bern.ch/themen/zuzug-umzug-wegzug/). Karton gehört in die **Restmüll- oder Papiermüll-Box**, je nachdem, ob er aus Papier besteht. Noch Fragen?",
+      "tool_ok": true,
+      "lang_ok": true
+    }
+  ]
+}
