@@ -56,9 +56,15 @@ STATUS_TEXT = {
 }
 
 
-def status_html(state: str) -> str:
+def status_html(state: str, ready_until_ms: int = 0) -> str:
+    """ready_until_ms lets the browser flip "ready" to "asleep" on its own (see tour_head),
+    so no timer has to call the server, which would keep the app container awake."""
     css_class, text = STATUS_TEXT[state]
-    return f'<span class="gs-pill gs-pill-{css_class}"><span class="gs-dot"></span>{escape(text)}</span>'
+    expires = f' data-ready-until="{ready_until_ms}"' if state == "ready" and ready_until_ms else ""
+    return (
+        f'<span class="gs-pill gs-pill-{css_class}"{expires}><span class="gs-dot"></span>'
+        f"{escape(text)}</span>"
+    )
 
 
 def persona_label(persona: Persona) -> str:
@@ -118,6 +124,7 @@ footer:not(.driver-popover-footer) { display: none !important; }
 
 #gs-toolbar { align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 #gs-toolbar > div { flex: 0 1 auto !important; min-width: 0 !important; }
+#gs-status { width: auto !important; flex: 0 1 auto !important; }
 #gs-tour-btn { flex: none !important; min-width: 0 !important; width: auto !important; }
 .gs-pill { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px; white-space: nowrap;
   font-size: 0.85rem; font-weight: 600; border: 1px solid var(--border-color-primary); }
@@ -142,10 +149,11 @@ footer:not(.driver-popover-footer) { display: none !important; }
 
 #gs-chat { border-radius: 16px; }
 /* No user avatar is used, so do not reserve space for one; let answers use the full width. */
-#gs-chat .message-row.bot-row { max-width: 100% !important; width: 100% !important; margin-right: 0 !important;
-  padding-right: 0 !important; }
-#gs-chat .message-row.bot-row .flex-wrap { flex: 1 1 auto; }
+#gs-chat .message-row.bot-row { max-width: 100% !important; margin-right: 0 !important; padding-right: 0 !important; }
+#gs-chat .message-row.bot-row .flex-wrap { flex: 1 1 auto; min-width: 0; }
 #gs-chat .message-row.bot-row .message { max-width: 100% !important; }
+/* Sources are long URLs; without this they widen the whole page on phones. */
+#gs-chat .message-content, #gs-chat .message-content a { overflow-wrap: anywhere; word-break: break-word; }
 .gs-empty { text-align: center; padding: 24px 12px; }
 .gs-empty-avatar { font-size: 2.6rem; }
 .gs-empty h3 { margin: 6px 0 2px; }
@@ -229,6 +237,15 @@ def tour_head() -> str:
     }});
     tour.drive();
   }};
+  // The GPU scales down when idle: expire a "ready" pill locally, without calling the server.
+  setInterval(function () {{
+    const pill = document.querySelector(".gs-pill[data-ready-until]");
+    if (pill && Date.now() > Number(pill.dataset.readyUntil)) {{
+      pill.className = "gs-pill gs-pill-asleep";
+      pill.removeAttribute("data-ready-until");
+      pill.lastChild.textContent = {json.dumps(STATUS_TEXT["asleep"][1])};
+    }}
+  }}, 15000);
   // First visit: start the tour once the Gradio app has rendered.
   let tries = 0;
   const timer = setInterval(function () {{
